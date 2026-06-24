@@ -62,7 +62,7 @@ router.post("/", authorize("ADMIN", "STAFF"), async (req: AuthRequest, res: Resp
   const parsed = customerSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const customer = await prisma.customer.create({ data: parsed.data });
+  const customer = await prisma.customer.create({ data: parsed.data as any });
   return res.status(201).json(customer);
 });
 

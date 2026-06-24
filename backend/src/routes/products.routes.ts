@@ -94,7 +94,7 @@ router.post("/categories", authorize("ADMIN"), async (req: AuthRequest, res: Res
   const parsed = z.object({ name: z.string().min(1) }).safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const category = await prisma.category.create({ data: parsed.data });
+  const category = await prisma.category.create({ data: parsed.data as any });
   return res.status(201).json(category);
 });
 
@@ -313,7 +313,7 @@ router.post("/", authorize("ADMIN"), async (req: AuthRequest, res: Response) => 
     return res.status(400).json({ error: parsed.error.flatten() });
   }
 
-  const product = await prisma.product.create({ data: parsed.data });
+  const product = await prisma.product.create({ data: parsed.data as any });
 
   await recordAudit({
     userId: req.user!.userId,

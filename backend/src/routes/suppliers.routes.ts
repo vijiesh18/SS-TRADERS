@@ -35,7 +35,7 @@ router.post("/", authorize("ADMIN", "STAFF"), async (req: AuthRequest, res: Resp
   const parsed = supplierSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const supplier = await prisma.supplier.create({ data: parsed.data });
+  const supplier = await prisma.supplier.create({ data: parsed.data as any });
   return res.status(201).json(supplier);
 });
 
@@ -43,7 +43,7 @@ router.put("/:id", authorize("ADMIN", "STAFF"), async (req: AuthRequest, res: Re
   const parsed = supplierSchema.partial().safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const supplier = await prisma.supplier.update({ where: { id: req.params.id }, data: parsed.data });
+  const supplier = await prisma.supplier.update({ where: { id: req.params.id }, data: parsed.data as any });
   return res.json(supplier);
 });
 
