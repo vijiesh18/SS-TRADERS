@@ -203,6 +203,9 @@ router.get("/credit", authorize("ADMIN", "ACCOUNTANT"), async (req: AuthRequest,
   if (format === "csv") return exportToCSV(res, "credit_report", rows);
   if (format === "pdf") return generateReportPDF(res, "Credit Report", rows);
 
+  return res.json(rows);
+});
+
 /**
  * GET /api/reports/gstr1?from=&to=&format=json|excel|csv
  * GSTR-1 filing format: B2B (registered customers with GSTIN) and
