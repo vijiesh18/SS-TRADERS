@@ -1,0 +1,22 @@
+import { AuthGuard } from "@/components/auth-guard";
+import { Sidebar } from "@/components/layout/sidebar";
+import { TopBar } from "@/components/layout/topbar";
+import { AppFooter } from "@/components/layout/app-footer";
+
+export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthGuard>
+      <div className="layout-shell">
+        <Sidebar />
+        <div className="layout-main">
+          <TopBar />
+          <main style={{ flex: 1, overflowY: "auto", paddingBottom: 64 }}>
+            {children}
+          </main>
+        </div>
+        {/* Fixed floating footer — outside scroll container */}
+        <AppFooter />
+      </div>
+    </AuthGuard>
+  );
+}

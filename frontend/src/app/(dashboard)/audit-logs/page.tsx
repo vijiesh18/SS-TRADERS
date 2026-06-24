@@ -1,0 +1,188 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown, ChevronUp, ScrollText } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { DateRangeFilter } from "@/components/reports/date-range-filter";
+import { AccessDenied } from "@/components/access-denied";
+import { useAuditLogs, AUDIT_ACTIONS } from "@/hooks/use-audit-logs";
+import { useAuthStore } from "@/store/auth-store";
+import { formatDate } from "@/lib/utils";
+
+const ACTION_VARIANT: Record<string, "success" | "warning" | "destructive" | "secondary" | "default"> = {
+  LOGIN: "success",
+  LOGOUT: "secondary",
+  LOGIN_FAILED: "destructive",
+  PASSWORD_RESET_REQUEST: "warning",
+  PASSWORD_RESET: "warning",
+  INVOICE_CREATE: "success",
+  INVOICE_EDIT: "warning",
+  INVOICE_CANCEL: "destructive",
+  INVOICE_DELETE: "destructive",
+  INVOICE_RESTORE: "success",
+  PRODUCT_CREATE: "success",
+  PRODUCT_UPDATE: "warning",
+  PRODUCT_DELETE: "destructive",
+  STOCK_ADJUSTMENT: "warning",
+  STOCK_CHANGE: "default",
+  BACKUP_CREATE: "default",
+  BACKUP_RESTORE: "destructive",
+  USER_CREATE: "success",
+  USER_UPDATE: "warning",
+  USER_DEACTIVATE: "destructive",
+};
+
+function actionLabel(action: string) {
+  return action
+    .split("_")
+    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function defaultFrom() {
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().slice(0, 10);
+}
+function defaultTo() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default function AuditLogsPage() {
+  const isAdmin = useAuthStore((s) => s.user?.role === "ADMIN");
+  const [from, setFrom] = useState(defaultFrom());
+  const [to, setTo] = useState(defaultTo());
+  const [action, setAction] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const { data, isLoading } = useAuditLogs({
+    from: new Date(from).toISOString(),
+    to: new Date(new Date(to).setHours(23, 59, 59)).toISOString(),
+    action: action !== "all" ? action : undefined,
+    page,
+    limit: 50,
+  });
+
+  if (!isAdmin) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Audit Logs</h1>
+          <p className="text-sm text-muted-foreground">System activity and security trail</p>
+        </div>
+        <AccessDenied message="Only Admin users can view audit logs." />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Audit Logs</h1>
+          <p className="text-sm text-muted-foreground">
+            Track logins, invoice changes, product/stock edits, backups, and user management
+          </p>
+        </div>
+        <div className="flex items-end gap-3">
+          <DateRangeFilter from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); setPage(1); }} />
+          <Select value={action} onValueChange={(v) => { setAction(v); setPage(1); }}>
+            <SelectTrigger className="w-56">
+              <SelectValue placeholder="All Actions" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Actions</SelectItem>
+              {AUDIT_ACTIONS.map((a) => (
+                <SelectItem key={a} value={a}>
+                  {actionLabel(a)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading...</p>
+          ) : !data || data.items.length === 0 ? (
+            <div className="px-4 py-12 text-center text-muted-foreground">
+              <ScrollText className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
+              No audit log entries found for this period.
+            </div>
+          ) : (
+            <div className="divide-y">
+              {data.items.map((log) => {
+                const expanded = expandedId === log.id;
+                const hasDetails = log.details && Object.keys(log.details).length > 0;
+                return (
+                  <div key={log.id} className="px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {hasDetails ? (
+                          <button onClick={() => setExpandedId(expanded ? null : log.id)} className="text-muted-foreground">
+                            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </button>
+                        ) : (
+                          <span className="w-4" />
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={ACTION_VARIANT[log.action] || "secondary"}>{actionLabel(log.action)}</Badge>
+                            {log.entityType && (
+                              <span className="text-xs text-muted-foreground">{log.entityType}</span>
+                            )}
+                          </div>
+                          <p className="text-sm mt-0.5">
+                            {log.user ? `${log.user.name} (${log.user.role})` : "System"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        <p>{formatDate(log.createdAt)}</p>
+                        <p>{new Date(log.createdAt).toLocaleTimeString("en-IN")}</p>
+                        {log.ipAddress && <p>{log.ipAddress}</p>}
+                      </div>
+                    </div>
+
+                    {expanded && hasDetails && (
+                      <pre className="mt-2 ml-7 rounded-md bg-slate-50 p-2 text-xs overflow-x-auto">
+                        {JSON.stringify(log.details, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {data && data.total > data.limit && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <p>
+            Showing {(page - 1) * data.limit + 1}-{Math.min(page * data.limit, data.total)} of {data.total}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page * data.limit >= data.total}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

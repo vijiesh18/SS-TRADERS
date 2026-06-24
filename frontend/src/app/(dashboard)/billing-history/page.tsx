@@ -1,0 +1,319 @@
+"use client";
+
+import { useState } from "react";
+import { Search, Printer, Download, XCircle, Receipt, Trash2, CheckSquare, Square } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { DateRangeFilter } from "@/components/reports/date-range-filter";
+import {
+  useInvoices,
+  useCancelInvoice,
+  useBulkCancelInvoices,
+  printInvoicePdfById,
+  downloadInvoicePdfById,
+} from "@/hooks/use-billing";
+import { useAuthStore } from "@/store/auth-store";
+import { formatCurrency, formatDate } from "@/lib/utils";
+
+const STATUS_VARIANT: Record<string, "success" | "warning" | "destructive" | "secondary"> = {
+  PAID: "success",
+  PARTIAL: "warning",
+  UNPAID: "secondary",
+  CANCELLED: "destructive",
+};
+
+export default function BillingHistoryPage() {
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [page, setPage] = useState(1);
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkCancelOpen, setBulkCancelOpen] = useState(false);
+  const [bulkReason, setBulkReason] = useState("Test invoice cleanup");
+
+  const isAdmin = useAuthStore((s) => s.user?.role === "ADMIN");
+
+  const { data, isLoading } = useInvoices({
+    page,
+    limit: 25,
+    status: status !== "all" ? status : undefined,
+    from: from || undefined,
+    to: to || undefined,
+    search: search || undefined,
+  });
+  const cancelInvoice = useCancelInvoice();
+  const bulkCancel = useBulkCancelInvoices();
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleBulkCancel() {
+    if (selectedIds.size === 0) return;
+    await bulkCancel.mutateAsync({ invoiceIds: Array.from(selectedIds), reason: bulkReason.trim() || "Bulk cancel" });
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    setBulkCancelOpen(false);
+  }
+
+  async function handleCancel(id: string) {
+    if (!cancelReason.trim()) {
+      setCancelError("Please enter a reason for cancellation");
+      return;
+    }
+    try {
+      await cancelInvoice.mutateAsync({ id, reason: cancelReason.trim() });
+      setCancelTarget(null);
+      setCancelReason("");
+      setCancelError(null);
+    } catch (err: any) {
+      setCancelError(err?.response?.data?.error?.toString() || "Failed to cancel invoice");
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Billing History</h1>
+        <p className="text-sm text-muted-foreground">All invoices generated from Billing POS</p>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="Invoice no, customer name or phone"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+        <DateRangeFilter from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); setPage(1); }} />
+        <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="All Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="PAID">Paid</SelectItem>
+            <SelectItem value="PARTIAL">Partial</SelectItem>
+            <SelectItem value="UNPAID">Unpaid</SelectItem>
+            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+        {isAdmin && (
+          <Button
+            variant={selectMode ? "default" : "outline"}
+            onClick={() => { setSelectMode((s) => !s); setSelectedIds(new Set()); }}
+          >
+            {selectMode ? <CheckSquare className="h-4 w-4 mr-1.5" /> : <Square className="h-4 w-4 mr-1.5" />}
+            {selectMode ? "Cancel Selection" : "Select Multiple"}
+          </Button>
+        )}
+      </div>
+
+      {/* Bulk action bar */}
+      {selectMode && selectedIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm font-medium text-red-800">{selectedIds.size} invoice(s) selected</p>
+          <Button variant="destructive" size="sm" onClick={() => setBulkCancelOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-1.5" />
+            Cancel Selected
+          </Button>
+        </div>
+      )}
+
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading...</p>
+          ) : !data || data.items.length === 0 ? (
+            <div className="px-4 py-12 text-center text-muted-foreground">
+              <Receipt className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
+              No invoices found for these filters.
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  {selectMode && <th className="px-4 py-3 w-10"></th>}
+                  <th className="px-4 py-3">Invoice No</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3">Items</th>
+                  <th className="px-4 py-3">Payment</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Total</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {data.items.map((inv) => (
+                  <tr key={inv.id} className={`hover:bg-slate-50 ${selectMode && selectedIds.has(inv.id) ? "bg-red-50/50" : ""}`}>
+                    {selectMode && (
+                      <td className="px-4 py-3">
+                        {inv.status !== "CANCELLED" ? (
+                          <button onClick={() => toggleSelect(inv.id)}>
+                            {selectedIds.has(inv.id)
+                              ? <CheckSquare className="h-4 w-4 text-red-600" />
+                              : <Square className="h-4 w-4 text-muted-foreground" />}
+                          </button>
+                        ) : null}
+                      </td>
+                    )}
+                    <td className="px-4 py-3 font-medium">{inv.invoiceNumber}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(inv.createdAt)}</td>
+                    <td className="px-4 py-3">{inv.customer ? inv.customer.name : "Walk-in"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{inv.items.length}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{inv.paymentMethod}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={STATUS_VARIANT[inv.status] || "secondary"}>{inv.status}</Badge>
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium">{formatCurrency(Number(inv.grandTotal))}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          title="Print"
+                          onClick={() => printInvoicePdfById(inv.id)}
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          title="Download PDF"
+                          onClick={() => downloadInvoicePdfById(inv.id, inv.invoiceNumber)}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                        {isAdmin && inv.status !== "CANCELLED" && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-red-500 hover:text-red-600"
+                            title="Cancel Invoice"
+                            onClick={() => setCancelTarget(inv.id)}
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+
+      {data && data.total > data.limit && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <p>
+            Showing {(page - 1) * data.limit + 1}-{Math.min(page * data.limit, data.total)} of {data.total}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page * data.limit >= data.total}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk cancel confirmation */}
+      {bulkCancelOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <Card className="w-full max-w-sm">
+            <CardContent className="space-y-4 p-6">
+              <p className="font-medium">Cancel {selectedIds.size} invoice(s)?</p>
+              <p className="text-sm text-muted-foreground">
+                This will mark all selected invoices as cancelled and restock their items. This cannot be undone.
+              </p>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Reason</label>
+                <Input value={bulkReason} onChange={(e) => setBulkReason(e.target.value)} placeholder="e.g. Test invoice cleanup" />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setBulkCancelOpen(false)}>Keep Invoices</Button>
+                <Button variant="destructive" onClick={handleBulkCancel} disabled={bulkCancel.isPending}>
+                  {bulkCancel.isPending ? "Cancelling..." : `Cancel ${selectedIds.size} Invoice(s)`}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <Card className="w-full max-w-sm">
+            <CardContent className="space-y-4 p-6">
+              <p className="font-medium">Cancel this invoice?</p>
+              <p className="text-sm text-muted-foreground">
+                This will mark the invoice as cancelled and restock all items. This cannot be undone.
+              </p>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Reason for cancellation</label>
+                <Input
+                  value={cancelReason}
+                  onChange={(e) => {
+                    setCancelReason(e.target.value);
+                    setCancelError(null);
+                  }}
+                  placeholder="e.g. Customer returned items, billing error"
+                />
+              </div>
+              {cancelError && <p className="text-sm text-red-500">{cancelError}</p>}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCancelTarget(null);
+                    setCancelReason("");
+                    setCancelError(null);
+                  }}
+                >
+                  Keep Invoice
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleCancel(cancelTarget)}
+                  disabled={cancelInvoice.isPending}
+                >
+                  {cancelInvoice.isPending ? "Cancelling..." : "Cancel Invoice"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}

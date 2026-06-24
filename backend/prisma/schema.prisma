@@ -1,0 +1,568 @@
+// S.S Traders Smart POS - Database Schema
+// PostgreSQL via Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────
+// ENUMS
+// ──────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  STAFF
+  ACCOUNTANT
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  CARD
+  CREDIT
+  SPLIT
+}
+
+enum InvoiceStatus {
+  PAID
+  PARTIAL
+  UNPAID
+  CANCELLED
+}
+
+enum BillStatus {
+  HELD
+  ACTIVE
+  CONVERTED
+  COMPLETED
+}
+
+enum EstimateStatus {
+  DRAFT
+  SENT
+  CONVERTED
+  EXPIRED
+}
+
+enum StockMovementType {
+  PURCHASE_IN
+  SALE_OUT
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  RETURN_IN
+  RETURN_OUT
+  DAMAGE_OUT
+  TRANSFER
+}
+
+enum BackupType {
+  DAILY
+  WEEKLY
+  MANUAL
+}
+
+enum BackupStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  RESTORED
+}
+
+// ──────────────────────────────────────────────
+// USERS, AUTH, AUDIT
+// ──────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  phone         String?
+  passwordHash  String
+  role          Role      @default(STAFF)
+  isActive      Boolean   @default(true)
+
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  auditLogs        AuditLog[]
+  createdInvoices  Invoice[]   @relation("InvoiceCreatedBy")
+  cancelledInvoices Invoice[]  @relation("InvoiceCancelledBy")
+  createdEstimates Estimate[]
+  stockMovements   StockMovement[]
+  expensesEntered  Expense[]
+  backups          Backup[]
+  sessions         Session[]
+  heldBills        HeldBill[]
+
+  @@map("users")
+  @@index([role])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("sessions")
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String   // e.g. LOGIN, INVOICE_EDIT, INVOICE_CANCEL, PRODUCT_UPDATE, STOCK_CHANGE
+  entityType String?  // e.g. Invoice, Product, Stock
+  entityId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@map("audit_logs")
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ──────────────────────────────────────────────
+// PRODUCTS / CATALOG (incl. Asian Paints catalog)
+// ──────────────────────────────────────────────
+
+model Category {
+  id            String     @id @default(uuid())
+  name          String     @unique
+  subcategories Subcategory[]
+  products      Product[]
+
+  @@map("categories")
+}
+
+model Subcategory {
+  id         String   @id @default(uuid())
+  name       String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products   Product[]
+
+  @@map("subcategories")
+  @@unique([categoryId, name])
+}
+
+model Brand {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
+
+  @@map("brands")
+}
+
+model Product {
+  id               String   @id @default(uuid())
+  productCode      String   @unique
+  barcode          String?  @unique
+  name             String
+  brandId          String?
+  brand            Brand?   @relation(fields: [brandId], references: [id])
+  categoryId       String?
+  category         Category? @relation(fields: [categoryId], references: [id])
+  subcategoryId    String?
+  subcategory      Subcategory? @relation(fields: [subcategoryId], references: [id])
+
+  hsnCode          String?
+  gstPercentage    Decimal  @default(18) @db.Decimal(5, 2)
+  unit             String   @default("PCS") // PCS, LTR, KG, BOX etc.
+  variant          String?  // e.g. 20L, 10L, 1KG
+  shadeCode        String?
+  shadeName        String?
+
+  purchasePrice    Decimal  @default(0) @db.Decimal(12, 2)
+  sellingPrice     Decimal  @default(0) @db.Decimal(12, 2)
+
+  stockQuantity    Decimal  @default(0) @db.Decimal(12, 2)
+  minimumStock     Decimal  @default(5) @db.Decimal(12, 2)
+
+  imageUrl         String?
+
+  isActive         Boolean  @default(true)
+  isDeleted        Boolean  @default(false)
+  deletedAt        DateTime?
+  deletedBy        String?
+  deleteReason     String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  billItems        BillItem[]
+  estimateItems    EstimateItem[]
+  purchaseItems    PurchaseItem[]
+  stockMovements   StockMovement[]
+  recommendations  ProductRecommendation[] @relation("SourceProduct")
+  recommendedFor   ProductRecommendation[] @relation("RecommendedProduct")
+
+  @@map("products")
+  @@index([name])
+  @@index([barcode])
+  @@index([productCode])
+  @@index([shadeCode])
+  @@index([categoryId])
+}
+
+// Frequently-bought-together / smart recommendation mapping
+model ProductRecommendation {
+  id                  String  @id @default(uuid())
+  sourceProductId     String
+  sourceProduct       Product @relation("SourceProduct", fields: [sourceProductId], references: [id], onDelete: Cascade)
+  recommendedProductId String
+  recommendedProduct  Product @relation("RecommendedProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+  weight              Int     @default(1) // how strongly recommended / frequency
+
+  @@map("product_recommendations")
+  @@unique([sourceProductId, recommendedProductId])
+}
+
+// ──────────────────────────────────────────────
+// CUSTOMERS & SUPPLIERS
+// ──────────────────────────────────────────────
+
+model Customer {
+  id          String   @id @default(uuid())
+  name        String
+  phone       String   @unique
+  address     String?
+  gstNumber   String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoices    Invoice[]
+  estimates   Estimate[]
+  credits     CreditRecord[]
+  heldBills   HeldBill[]
+
+  @@map("customers")
+  @@index([phone])
+  @@index([name])
+}
+
+model Supplier {
+  id                String   @id @default(uuid())
+  name              String
+  phone             String?
+  gstNumber         String?
+  address           String?
+  outstandingBalance Decimal @default(0) @db.Decimal(12, 2)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  purchases         Purchase[]
+
+  @@map("suppliers")
+  @@index([name])
+}
+
+// ──────────────────────────────────────────────
+// BILLING / INVOICES / ESTIMATES
+// ──────────────────────────────────────────────
+
+model Invoice {
+  id              String        @id @default(uuid())
+  invoiceNumber   String        @unique // SST-2026-000001
+  customerId      String?
+  customer        Customer?     @relation(fields: [customerId], references: [id])
+
+  subTotal        Decimal       @db.Decimal(12, 2)
+  discountAmount  Decimal       @default(0) @db.Decimal(12, 2)
+  gstAmount       Decimal       @default(0) @db.Decimal(12, 2)
+  cgstAmount      Decimal       @default(0) @db.Decimal(12, 2)
+  sgstAmount      Decimal       @default(0) @db.Decimal(12, 2)
+  igstAmount      Decimal       @default(0) @db.Decimal(12, 2)
+  roundOff        Decimal       @default(0) @db.Decimal(12, 2)
+  grandTotal      Decimal       @db.Decimal(12, 2)
+
+  paymentMethod   PaymentMethod @default(CASH)
+  paidAmount      Decimal       @default(0) @db.Decimal(12, 2)
+  pendingAmount   Decimal       @default(0) @db.Decimal(12, 2)
+  status          InvoiceStatus @default(PAID)
+
+  qrCodeData      String?
+
+  createdById     String
+  createdBy       User          @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+
+  // soft delete / cancellation
+  isCancelled     Boolean       @default(false)
+  cancelledAt     DateTime?
+  cancelledById   String?
+  cancelledBy     User?         @relation("InvoiceCancelledBy", fields: [cancelledById], references: [id])
+  cancelReason    String?
+
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  deleteReason    String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items           BillItem[]
+  creditRecord    CreditRecord?
+  estimateRef     Estimate?     @relation("EstimateToInvoice")
+
+  @@map("invoices")
+  @@index([invoiceNumber])
+  @@index([customerId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model BillItem {
+  id              String   @id @default(uuid())
+  invoiceId       String
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+
+  productName     String   // snapshot at sale time
+  hsnCode         String?
+  shadeCode       String?  // colour/shade code, snapshot at sale time (editable per sale)
+  quantity        Decimal  @db.Decimal(12, 2)
+  rate            Decimal  @db.Decimal(12, 2)
+  discountPercent Decimal  @default(0) @db.Decimal(5, 2)
+  gstPercentage   Decimal  @db.Decimal(5, 2)
+  taxableAmount   Decimal  @db.Decimal(12, 2)
+  gstAmount       Decimal  @db.Decimal(12, 2)
+  totalAmount     Decimal  @db.Decimal(12, 2)
+
+  @@map("bill_items")
+  @@index([invoiceId])
+  @@index([productId])
+}
+
+// Hold/Resume bills (draft bills before final invoice)
+model HeldBill {
+  id          String   @id @default(uuid())
+  label       String?  // e.g. "Table 1", "Customer - Ramesh"
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  itemsJson   Json     // serialized cart items
+  status      BillStatus @default(HELD)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("held_bills")
+}
+
+model Estimate {
+  id              String         @id @default(uuid())
+  estimateNumber  String         @unique // EST-2026-000001
+  customerId      String?
+  customer        Customer?      @relation(fields: [customerId], references: [id])
+
+  subTotal        Decimal        @db.Decimal(12, 2)
+  gstAmount       Decimal        @default(0) @db.Decimal(12, 2)
+  grandTotal      Decimal        @db.Decimal(12, 2)
+
+  status          EstimateStatus @default(DRAFT)
+
+  convertedInvoiceId String?     @unique
+  convertedInvoice   Invoice?    @relation("EstimateToInvoice", fields: [convertedInvoiceId], references: [id])
+
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  items           EstimateItem[]
+
+  @@map("estimates")
+  @@index([estimateNumber])
+}
+
+model EstimateItem {
+  id              String   @id @default(uuid())
+  estimateId      String
+  estimate        Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+
+  productName     String
+  quantity        Decimal  @db.Decimal(12, 2)
+  rate            Decimal  @db.Decimal(12, 2)
+  gstPercentage   Decimal  @db.Decimal(5, 2)
+  totalAmount     Decimal  @db.Decimal(12, 2)
+
+  @@map("estimate_items")
+}
+
+// ──────────────────────────────────────────────
+// CREDIT MANAGEMENT
+// ──────────────────────────────────────────────
+
+model CreditRecord {
+  id             String    @id @default(uuid())
+  invoiceId      String    @unique
+  invoice        Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id])
+
+  totalAmount    Decimal   @db.Decimal(12, 2)
+  paidAmount     Decimal   @default(0) @db.Decimal(12, 2)
+  pendingAmount  Decimal   @db.Decimal(12, 2)
+  dueDate        DateTime?
+
+  isSettled      Boolean   @default(false)
+  settledAt      DateTime?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  payments       CreditPayment[]
+
+  @@map("credit_records")
+  @@index([customerId])
+  @@index([dueDate])
+  @@index([isSettled])
+}
+
+model CreditPayment {
+  id             String       @id @default(uuid())
+  creditRecordId String
+  creditRecord   CreditRecord @relation(fields: [creditRecordId], references: [id], onDelete: Cascade)
+  amount         Decimal      @db.Decimal(12, 2)
+  paymentMethod  PaymentMethod @default(CASH)
+  note           String?
+  paidAt         DateTime     @default(now())
+
+  @@map("credit_payments")
+}
+
+// ──────────────────────────────────────────────
+// PURCHASES & STOCK
+// ──────────────────────────────────────────────
+
+model Purchase {
+  id              String   @id @default(uuid())
+  purchaseNumber  String   @unique
+  supplierId      String
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+
+  supplierInvoiceNo String?
+  totalAmount     Decimal  @db.Decimal(12, 2)
+  paidAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  balanceAmount   Decimal  @default(0) @db.Decimal(12, 2)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items           PurchaseItem[]
+
+  @@map("purchases")
+  @@index([supplierId])
+}
+
+model PurchaseItem {
+  id            String   @id @default(uuid())
+  purchaseId    String
+  purchase      Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+
+  quantity      Decimal  @db.Decimal(12, 2)
+  purchaseRate  Decimal  @db.Decimal(12, 2)
+  gstPercentage Decimal  @default(0) @db.Decimal(5, 2)
+  totalAmount   Decimal  @db.Decimal(12, 2)
+
+  @@map("purchase_items")
+}
+
+model StockMovement {
+  id          String            @id @default(uuid())
+  productId   String
+  product     Product           @relation(fields: [productId], references: [id])
+  type        StockMovementType
+  quantity    Decimal           @db.Decimal(12, 2)
+  balanceAfter Decimal          @db.Decimal(12, 2)
+  reference   String?           // e.g. invoice number / purchase number
+  note        String?
+  createdById String?
+  createdBy   User?             @relation(fields: [createdById], references: [id])
+  createdAt   DateTime          @default(now())
+
+  @@map("stock_movements")
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ──────────────────────────────────────────────
+// EXPENSES
+// ──────────────────────────────────────────────
+
+model Expense {
+  id          String   @id @default(uuid())
+  category    String   // Salary, Rent, Electricity, Transport, Misc
+  description String?
+  amount      Decimal  @db.Decimal(12, 2)
+  expenseDate DateTime @default(now())
+
+  enteredById String
+  enteredBy   User     @relation(fields: [enteredById], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@map("expenses")
+  @@index([category])
+  @@index([expenseDate])
+}
+
+// ──────────────────────────────────────────────
+// BACKUP / RESTORE
+// ──────────────────────────────────────────────
+
+model Backup {
+  id          String       @id @default(uuid())
+  fileName    String       // SS_Traders_Backup_YYYY_MM_DD.zip
+  filePath    String
+  type        BackupType   @default(MANUAL)
+  status      BackupStatus @default(PENDING)
+  sizeBytes   Int?
+
+  createdById String?
+  createdBy   User?        @relation(fields: [createdById], references: [id])
+
+  createdAt   DateTime     @default(now())
+
+  @@map("backups")
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ──────────────────────────────────────────────
+// SETTINGS
+// ──────────────────────────────────────────────
+
+model Setting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value Json
+
+  @@map("settings")
+}
