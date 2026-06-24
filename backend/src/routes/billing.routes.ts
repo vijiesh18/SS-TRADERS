@@ -277,6 +277,57 @@ router.get("/invoices", async (req: AuthRequest, res: Response) => {
 /**
  * GET /api/billing/invoices/:id
  */
+router.post("/invoices/bulk-cancel", authorize("ADMIN"), async (req: AuthRequest, res: Response) => {
+  const schema = z.object({
+    invoiceIds: z.array(z.string()).min(1),
+    reason: z.string().min(1),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const { invoiceIds, reason } = parsed.data;
+  let cancelled = 0, skipped = 0;
+
+  for (const id of invoiceIds) {
+    const invoice = await prisma.invoice.findUnique({ where: { id }, include: { items: true } });
+    if (!invoice || invoice.isCancelled) { skipped++; continue; }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          isCancelled: true,
+          cancelledAt: new Date(),
+          cancelledById: req.user!.userId,
+          cancelReason: reason,
+          status: "CANCELLED",
+        },
+      });
+      for (const item of invoice.items) {
+        const product = await tx.product.findUnique({ where: { id: item.productId } });
+        if (!product) continue;
+        const newQty = Number(product.stockQuantity) + Number(item.quantity);
+        await tx.product.update({ where: { id: product.id }, data: { stockQuantity: newQty } });
+        await tx.stockMovement.create({
+          data: {
+            productId: product.id,
+            type: "RETURN_IN",
+            quantity: item.quantity,
+            balanceAfter: newQty,
+            reference: invoice.invoiceNumber,
+            note: `Bulk cancel: ${reason}`,
+            createdById: req.user!.userId,
+          },
+        });
+      }
+    });
+    cancelled++;
+  }
+
+  return res.json({ message: `${cancelled} invoice(s) cancelled, ${skipped} skipped`, cancelled, skipped });
+});
+
+// ──────────────────────────────────────────────
 router.get("/invoices/:id", async (req: AuthRequest, res: Response) => {
   const invoice = await prisma.invoice.findUnique({
     where: { id: req.params.id },
@@ -350,57 +401,6 @@ router.post("/invoices/:id/cancel", authorize("ADMIN"), async (req: AuthRequest,
  * Cancels multiple invoices at once (e.g. clearing test data before go-live).
  * Restocks items for each. Admin only.
  */
-router.post("/invoices/bulk-cancel", authorize("ADMIN"), async (req: AuthRequest, res: Response) => {
-  const schema = z.object({
-    invoiceIds: z.array(z.string()).min(1),
-    reason: z.string().min(1),
-  });
-  const parsed = schema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-
-  const { invoiceIds, reason } = parsed.data;
-  let cancelled = 0, skipped = 0;
-
-  for (const id of invoiceIds) {
-    const invoice = await prisma.invoice.findUnique({ where: { id }, include: { items: true } });
-    if (!invoice || invoice.isCancelled) { skipped++; continue; }
-
-    await prisma.$transaction(async (tx) => {
-      await tx.invoice.update({
-        where: { id: invoice.id },
-        data: {
-          isCancelled: true,
-          cancelledAt: new Date(),
-          cancelledById: req.user!.userId,
-          cancelReason: reason,
-          status: "CANCELLED",
-        },
-      });
-      for (const item of invoice.items) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } });
-        if (!product) continue;
-        const newQty = Number(product.stockQuantity) + Number(item.quantity);
-        await tx.product.update({ where: { id: product.id }, data: { stockQuantity: newQty } });
-        await tx.stockMovement.create({
-          data: {
-            productId: product.id,
-            type: "RETURN_IN",
-            quantity: item.quantity,
-            balanceAfter: newQty,
-            reference: invoice.invoiceNumber,
-            note: `Bulk cancel: ${reason}`,
-            createdById: req.user!.userId,
-          },
-        });
-      }
-    });
-    cancelled++;
-  }
-
-  return res.json({ message: `${cancelled} invoice(s) cancelled, ${skipped} skipped`, cancelled, skipped });
-});
-
-// ──────────────────────────────────────────────
 // HELD / DRAFT BILLS
 // ──────────────────────────────────────────────
 
