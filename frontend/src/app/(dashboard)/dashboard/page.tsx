@@ -104,7 +104,6 @@ function MetricCard({ label, value, icon:Icon, accent="olive", delay=0, isLoadin
     <div style={{
       opacity: vis ? 1 : 0,
       transform: vis ? "translateY(0)" : "translateY(20px)",
-      transition: "opacity 0.45s ease, transform 0.45s cubic-bezier(.34,1.1,.64,1)",
       background: "rgba(250,247,242,0.85)",
       backdropFilter: "blur(16px)",
       border: `1px solid ${a.border}`,
