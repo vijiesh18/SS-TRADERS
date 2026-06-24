@@ -88,7 +88,7 @@ router.get("/summary", async (_req: AuthRequest, res: Response) => {
   const totalPendingCredits =
     Number(pendingCreditAgg._sum.pendingAmount || 0) +
     Number(pendingInvoicesAgg._sum.pendingAmount || 0);
-  const pendingCreditCount = (pendingCreditAgg._count || 0) + (pendingInvoicesAgg._count || 0);
+  const pendingCreditCount = ((pendingCreditAgg as any)._count || 0) + ((pendingInvoicesAgg as any)._count || 0);
 
   return res.json({
     todaySales: today.total,

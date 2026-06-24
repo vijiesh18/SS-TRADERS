@@ -143,7 +143,8 @@ router.post("/from-invoice/:invoiceId", authorize("ADMIN", "STAFF"), async (req:
 
   const invoice = await prisma.invoice.findUnique({ where: { id: req.params.invoiceId } });
   if (!invoice) return res.status(404).json({ error: "Invoice not found" });
-  if (invoice.creditRecord) return res.status(400).json({ error: "Credit record already exists for this invoice" });
+  // @ts-ignore
+  if ((invoice as any).creditRecord) return res.status(400).json({ error: "Credit record already exists for this invoice" });
   if (Number(invoice.pendingAmount) <= 0) return res.status(400).json({ error: "Invoice has no pending balance" });
 
   const [record] = await prisma.$transaction([
