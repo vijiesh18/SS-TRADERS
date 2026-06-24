@@ -307,8 +307,8 @@ export default function DashboardPage() {
         <MetricCard label="Total Profit"    value={summary?.totalProfit     ||0} icon={TrendingUp}    accent="copper" delay={60}  isLoading={summaryLoading} change="+8.7%"  />
         <MetricCard label="Pending Credits" value={summary?.pendingCredits  ||0} icon={Wallet}        accent="sage"   delay={120} isLoading={summaryLoading} change="-3.2%"  />
         <MetricCard label="Overdue Credits" value={summary?.overdueCredits  ||0} icon={AlertCircle}   accent="rust"   delay={180} isLoading={summaryLoading} isCurrency={false} />
-        <MetricCard label="Total Expenses"  value={summary?.totalExpenses   ||0} icon={ShoppingCart}  accent="copper" delay={240} isLoading={summaryLoading} change="-2.1%"  />
-        <MetricCard label="Total Purchases" value={summary?.totalPurchases  ||0} icon={ShoppingCart}  accent="olive"  delay={300} isLoading={summaryLoading} change="+5.8%"  />
+        <MetricCard label="Total Expenses"  value={(summary as any)?.totalExpenses   ||0} icon={ShoppingCart}  accent="copper" delay={240} isLoading={summaryLoading} change="-2.1%"  />
+        <MetricCard label="Total Purchases" value={(summary as any)?.totalPurchases  ||0} icon={ShoppingCart}  accent="olive"  delay={300} isLoading={summaryLoading} change="+5.8%"  />
         <MetricCard label="Total Customers" value={summary?.totalCustomers  ||0} icon={Users}         accent="sage"   delay={360} isLoading={summaryLoading} isCurrency={false} change="+13.6%" />
         <MetricCard label="Low Stock Items" value={summary?.lowStockProducts||0} icon={AlertTriangle} accent="rust"   delay={420} isLoading={summaryLoading} isCurrency={false} />
       </div>
