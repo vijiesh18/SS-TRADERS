@@ -582,3 +582,193 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(107,124,69,0.12) !important;
   outline: none !important;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE — update27
+   Comprehensive mobile fixes for billing, tables, all pages
+   ============================================================ */
+
+/* Hamburger — hidden on desktop */
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 60;
+  background: rgba(250,247,242,0.96);
+  border: 1px solid rgba(180,155,110,0.35);
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #2c2418;
+  box-shadow: 0 4px 16px rgba(100,80,40,0.15);
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(44,40,32,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 49;
+}
+
+.sidebar-close-btn { display: none !important; }
+
+/* ── Tablet 768–1024px ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .topbar-date { display: none !important; }
+}
+
+/* ── Mobile under 768px ─────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Show hamburger */
+  .hamburger-btn { display: flex; }
+
+  /* Sidebar slides */
+  .sidebar-glass {
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    width: 280px !important;
+    z-index: 50;
+  }
+  .sidebar-glass.sidebar-open { transform: translateX(0) !important; }
+
+  .sidebar-backdrop { display: block; }
+  .sidebar-backdrop.hidden { display: none; }
+  .sidebar-close-btn { display: flex !important; }
+
+  /* Main layout */
+  .layout-main { margin-left: 0 !important; }
+
+  /* Topbar */
+  .topbar-glass {
+    padding-left: 62px !important;
+    height: 56px;
+    gap: 8px;
+  }
+  .topbar-date { display: none !important; }
+  .topbar-newbill {
+    padding: 7px 10px !important;
+    font-size: 11px !important;
+  }
+
+  /* Page padding */
+  main > div { padding: 16px 12px 80px !important; }
+
+  /* ── BILLING PAGE ─────────────────────────────────────── */
+
+  /* Billing table — horizontal scroll */
+  .overflow-x-auto { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Hide less important billing table columns on mobile */
+  table thead th:nth-child(3),
+  table thead th:nth-child(4),
+  table thead th:nth-child(6),
+  table thead th:nth-child(7),
+  table thead th:nth-child(8),
+  table tbody td:nth-child(3),
+  table tbody td:nth-child(4),
+  table tbody td:nth-child(6),
+  table tbody td:nth-child(7),
+  table tbody td:nth-child(8) {
+    display: none;
+  }
+
+  /* Payment method buttons — wrap nicely */
+  .flex.gap-2.flex-wrap { flex-wrap: wrap; gap: 6px; }
+  
+  /* Payment buttons equal width on mobile */
+  button[class*="payment"], 
+  .flex button:has(+ button) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Invoice summary — compact */
+  .space-y-1 .flex.justify-between {
+    font-size: 13px;
+  }
+
+  /* Search + scan button row */
+  .flex.gap-2 > .relative.flex-1 { min-width: 0; }
+
+  /* Grid layouts — force single column */
+  .grid.grid-cols-1.gap-4.lg\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid.grid-cols-1.gap-4.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Held bills panel */
+  .lg\:col-span-2 { grid-column: span 1 !important; }
+
+  /* ── ALL PAGES — Tables ───────────────────────────────── */
+  .rounded-lg.border { overflow-x: auto; }
+
+  /* Cards full width */
+  .grid.gap-4 { grid-template-columns: 1fr !important; }
+  .grid.gap-3 { grid-template-columns: 1fr !important; }
+
+  /* Stats grid — 2 columns */
+  .grid.grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid.grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Buttons — full width on mobile where appropriate */
+  .flex.items-center.justify-between { flex-wrap: wrap; gap: 8px; }
+
+  /* Dialog/modal — full screen on mobile */
+  [role="dialog"] > div {
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px !important;
+    max-height: calc(100vh - 24px) !important;
+    overflow-y: auto;
+  }
+
+  /* Tabs — scrollable */
+  [role="tablist"] { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+
+  /* Dashboard metric grid */
+  div[style*="gridTemplateColumns"][style*="minmax(200px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Dashboard chart row */
+  div[style*="gridTemplateColumns"][style*="320px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Footer */
+  .glass-footer {
+    bottom: 12px;
+    font-size: 10px;
+    padding: 7px 14px;
+    max-width: calc(100vw - 32px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Login page */
+  .grid.grid-cols-2.min-h-screen { grid-template-columns: 1fr !important; }
+  .hidden.lg\:flex { display: none !important; }
+}
+
+/* ── Very small under 420px ─────────────────────────────── */
+@media (max-width: 420px) {
+  .topbar-glass { padding-left: 58px !important; }
+  main > div { padding: 12px 10px 80px !important; }
+
+  /* Billing payment buttons 2x2 grid */
+  .grid.grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Smaller text in tables */
+  tbody td { font-size: 12px !important; padding: 10px 8px !important; }
+  thead th { font-size: 10px !important; padding: 8px !important; }
+}

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard, ShoppingCart, History, FileText, Boxes,
   Package, Users, Truck, ClipboardList, Wallet, Receipt,
   BarChart3, Download, DatabaseBackup, Settings, UserCog,
-  ScrollText, LogOut, Paintbrush,
+  ScrollText, LogOut, Paintbrush, X, Menu,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { useLogout } from "@/hooks/use-auth";
@@ -46,11 +47,29 @@ const NAV_GROUPS = [
 ];
 
 export function Sidebar() {
-  const pathname  = usePathname();
-  const router    = useRouter();
-  const user      = useAuthStore((s) => s.user);
+  const pathname      = usePathname();
+  const router        = useRouter();
+  const user          = useAuthStore((s) => s.user);
   const hasPermission = useAuthStore((s) => s.hasPermission);
-  const logout    = useLogout();
+  const logout        = useLogout();
+  const [open, setOpen] = useState(false);
+
+  // Close on route change
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  // Close on ESC
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, []);
+
+  // Prevent body scroll when open on mobile
+  useEffect(() => {
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   async function handleLogout() {
     await logout.mutateAsync();
@@ -59,25 +78,46 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Warm ambient blobs */}
+      {/* Ambient blobs */}
       <div className="glass-scene" aria-hidden="true">
-        <div className="blob blob-1" />
-        <div className="blob blob-2" />
-        <div className="blob blob-3" />
+        <div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" />
       </div>
       <div className="paint-grid" aria-hidden="true" />
 
-      <aside className="sidebar-glass">
+      {/* Hamburger — mobile only (CSS hides on desktop) */}
+      <button className="hamburger-btn" onClick={() => setOpen(true)} aria-label="Open menu">
+        <Menu size={20} />
+      </button>
+
+      {/* Backdrop — mobile only */}
+      <div
+        className={`sidebar-backdrop${open ? "" : " hidden"}`}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Sidebar */}
+      <aside className={`sidebar-glass${open ? " sidebar-open" : ""}`}>
+
         {/* Logo */}
         <div className="sidebar-logo">
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <div className="sidebar-logo-mark">
-              <Paintbrush size={16} />
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div className="sidebar-logo-mark"><Paintbrush size={16} /></div>
+              <div>
+                <div className="sidebar-logo-text">S.S Traders</div>
+                <div className="sidebar-logo-sub">SMART POS · NAGERCOIL</div>
+              </div>
             </div>
-            <div>
-              <div className="sidebar-logo-text">S.S Traders</div>
-              <div className="sidebar-logo-sub">SMART POS · NAGERCOIL</div>
-            </div>
+            {/* Close btn — shown on mobile via CSS */}
+            <button
+              className="sidebar-close-btn"
+              onClick={() => setOpen(false)}
+              aria-label="Close menu"
+              style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(180,155,110,0.7)", padding:4, borderRadius:6, display:"flex", alignItems:"center" }}
+            >
+              <X size={18} />
+            </button>
           </div>
         </div>
 
@@ -114,7 +154,7 @@ export function Sidebar() {
           <div style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 12px", marginBottom:2 }}>
             <div style={{
               width:32, height:32, borderRadius:"50%",
-              background:"linear-gradient(135deg, #6b7c45, #c47a3a)",
+              background:"linear-gradient(135deg,#6b7c45,#c47a3a)",
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:13, fontWeight:700, color:"#fff", flexShrink:0,
             }}>
