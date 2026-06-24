@@ -43,7 +43,7 @@ export default function ReportsPage() {
     setTo(t);
   }
 
-  function download(type: ReportType, format: "pdf" | "excel" | "csv") {
+  function download(type: ReportType, format: "pdf" | "excel" | "csv" | "json") {
     downloadReport.mutate({ type, format, from, to });
   }
 
