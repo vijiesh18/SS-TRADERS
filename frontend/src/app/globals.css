@@ -468,13 +468,7 @@ main > div {
 }
 
 /* Override ShadCN Card to use warm glass surface */
-.card, [class*="card"] {
-  background: rgba(250,247,242,0.88) !important;
-  border: 1px solid rgba(180,155,110,0.22) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 4px 20px rgba(100,80,40,0.08), inset 0 1px 0 rgba(255,255,255,0.7) !important;
-  color: var(--text-primary) !important;
-}
+
 
 /* Headings in pages */
 h1.text-2xl, h1.text-3xl {
@@ -551,20 +545,8 @@ thead tr {
   background: rgba(180,155,110,0.08) !important;
   border-bottom: 1px solid rgba(180,155,110,0.18) !important;
 }
-thead th {
-  color: #a8937a !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.8px !important;
-  padding: 12px 16px !important;
-}
-tbody td {
-  color: #2c2418 !important;
-  padding: 13px 16px !important;
-  border-bottom: 1px solid rgba(180,155,110,0.10) !important;
-  font-size: 14px !important;
-}
+
+
 tbody tr:hover td {
   background: rgba(180,155,110,0.06) !important;
 }
@@ -577,11 +559,7 @@ input[type="number"], input[type="search"], select, textarea {
   color: #2c2418 !important;
   border-radius: 8px !important;
 }
-input:focus, select:focus, textarea:focus {
-  border-color: #6b7c45 !important;
-  box-shadow: 0 0 0 3px rgba(107,124,69,0.12) !important;
-  outline: none !important;
-}
+
 
 /* ============================================================
    MOBILE RESPONSIVE — update27
@@ -658,7 +636,7 @@ input:focus, select:focus, textarea:focus {
   }
 
   /* Page padding */
-  main > div { padding: 16px 12px 80px !important; }
+  
 
   /* ── BILLING PAGE ─────────────────────────────────────── */
 
@@ -763,12 +741,12 @@ input:focus, select:focus, textarea:focus {
 /* ── Very small under 420px ─────────────────────────────── */
 @media (max-width: 420px) {
   .topbar-glass { padding-left: 58px !important; }
-  main > div { padding: 12px 10px 80px !important; }
+  
 
   /* Billing payment buttons 2x2 grid */
   .grid.grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
 
   /* Smaller text in tables */
-  tbody td { font-size: 12px !important; padding: 10px 8px !important; }
-  thead th { font-size: 10px !important; padding: 8px !important; }
+  
+  
 }
