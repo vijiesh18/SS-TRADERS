@@ -26,7 +26,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     readerRef.current = reader;
 
     reader
-      .decodeFromVideoDevice(undefined, videoRef.current!, (result, err) => {
+      .decodeFromVideoDevice(null, videoRef.current!, (result, err) => {
         if (result) {
           onScan(result.getText());
           reader.reset();
