@@ -1,5 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="32" fill="#2c2820"/>
-  <text x="96" y="108" text-anchor="middle" font-family="Georgia,serif" font-size="72" font-weight="700" fill="#a8c07a">SS</text>
-  <text x="96" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="600" fill="#a8937a" letter-spacing="3">TRADERS</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3d3528"/>
+      <stop offset="1" stop-color="#2c2820"/>
+    </linearGradient>
+    <linearGradient id="brush" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8fa05a"/>
+      <stop offset="1" stop-color="#6b7c45"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- paint brush handle -->
+  <rect x="300" y="120" width="34" height="150" rx="14" transform="rotate(35 317 195)" fill="url(#brush)"/>
+  <!-- brush ferrule -->
+  <rect x="232" y="244" width="60" height="34" rx="8" transform="rotate(35 262 261)" fill="#c47a3a"/>
+  <!-- bristle / paint stroke -->
+  <path d="M150 300 q40 -30 90 -10 q-10 50 -55 70 q-40 18 -55 -12 q-8 -28 20 -48 z" fill="#c47a3a"/>
+  <!-- SS monogram -->
+  <text x="256" y="430" text-anchor="middle" font-family="Georgia, serif" font-size="120" font-weight="700" fill="#a8c07a">SS</text>
 </svg>

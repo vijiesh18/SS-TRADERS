@@ -1,7 +1,11 @@
 import type { Response, NextFunction } from "express";
 import type { AuthRequest } from "@/middleware/auth";
 import { verifyAccessToken } from "@/lib/jwt";
-import prisma from "@/lib/prisma";
+import {
+  demoDashboardSummary, demoDashboardCharts, demoInvoices, demoCustomers,
+  demoSuppliers, demoCredit, demoCreditSummary, demoSalesReport,
+  demoProfitReport, demoGstReport, demoInventoryReport, demoExpenses,
+} from "@/lib/demo-data";
 
 const DEMO_EMAIL = "demo@sstraders.com";
 
@@ -17,36 +21,27 @@ function isDemoUser(req: AuthRequest): boolean {
   }
 }
 
-async function getDemoDashboard() {
-  const productCount = await prisma.product.count({ where: { isDeleted: false } });
-  return {
-    todaySales: 0, weeklySales: 0, monthlySales: 0, yearlySales: 0,
-    totalRevenue: 0, totalProfit: 0, pendingCredits: 0, pendingCreditCount: 0,
-    overdueCredits: 0, lowStockProducts: 0, totalCustomers: 0, totalProducts: productCount,
-  };
-}
-
 const EMPTY = { items: [], total: 0, page: 1, limit: 25 };
 
 const ROUTE_EMPTY_GET: Record<string, (req: AuthRequest) => any> = {
-  "GET /api/dashboard/summary": () => getDemoDashboard(),
-  "GET /api/dashboard/charts": () => ({ revenueTrend: [], profitTrend: [], topProducts: [], salesByPayment: [] }),
-  "GET /api/billing/invoices": () => ({ ...EMPTY }),
+  "GET /api/dashboard/summary": () => demoDashboardSummary(),
+  "GET /api/dashboard/charts": (req) => demoDashboardCharts((req.query.period as string) || "monthly"),
+  "GET /api/billing/invoices": () => demoInvoices(),
   "GET /api/billing/held-bills": () => ({ items: [] }),
   "GET /api/billing/held": () => ({ items: [] }),
-  "GET /api/customers": () => ({ ...EMPTY }),
+  "GET /api/customers": () => demoCustomers(),
   "GET /api/customers/search": () => ({ results: [] }),
-  "GET /api/suppliers": () => ({ ...EMPTY }),
+  "GET /api/suppliers": () => demoSuppliers(),
   "GET /api/estimates": () => ({ ...EMPTY }),
-  "GET /api/credit": () => ({ items: [], pendingInvoices: [] }),
-  "GET /api/credit/summary": () => ({ totalPending: 0, pendingCount: 0, dueTodayCount: 0, overdueCount: 0 }),
+  "GET /api/credit": () => demoCredit(),
+  "GET /api/credit/summary": () => demoCreditSummary(),
   "GET /api/purchases": () => ({ ...EMPTY }),
-  "GET /api/expenses": () => ({ items: [], totalAmount: 0, total: 0, page: 1, limit: 25 }),
-  "GET /api/reports/sales": () => ({ totalSales: 0, count: 0, rows: [] }),
-  "GET /api/reports/profit": () => ({ totalRevenue: 0, totalProfit: 0, rows: [] }),
-  "GET /api/reports/gst": () => ({ rows: [] }),
+  "GET /api/expenses": () => demoExpenses(),
+  "GET /api/reports/sales": () => demoSalesReport(),
+  "GET /api/reports/profit": () => demoProfitReport(),
+  "GET /api/reports/gst": () => demoGstReport(),
   "GET /api/reports/gstr1": () => ({ b2b: [], b2cSummary: [], hsnSummary: [], totals: { totalTaxable: 0, totalCgst: 0, totalSgst: 0, b2bCount: 0, b2cInvoiceCount: 0 } }),
-  "GET /api/reports/inventory": () => ({ totalStockValue: 0, rows: [] }),
+  "GET /api/reports/inventory": () => demoInventoryReport(),
   "GET /api/reports/customers": () => ({ items: [], total: 0 }),
   "GET /api/reports/credit": () => ({ items: [], total: 0 }),
   "GET /api/backup": () => [],
