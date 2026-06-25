@@ -445,8 +445,8 @@ export default function CreditPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418" }}>Credit Management</h1>
-        <p style={{ fontSize: 13, color: "#a8937a", marginTop: 5, fontWeight: 500 }}>Track outstanding balances and collect payments</p>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418", lineHeight: 1.2 }}>Credit Management</h1>
+        <p style={{ fontSize: 12, color: "#a8937a", marginTop: 4, fontWeight: 500 }}>Track outstanding balances and collect payments</p>
       </div>
 
       {/* Summary */}
@@ -508,10 +508,17 @@ export default function CreditPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">Loading...</td></tr>
+              <tr><td colSpan={7} style={{ padding: "40px 20px", textAlign: "center", color: "#a8937a", fontSize: 13 }}>Loading...</td></tr>
             ) : records.length === 0 ? (
-              <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">
-                {search ? `No customers matching "${search}"` : "No pending credit records. Select a customer when doing a credit sale to track it here."}
+              <tr><td colSpan={7} style={{ padding: "48px 20px", textAlign: "center" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(180,155,110,0.10)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <CreditCard className="h-5 w-5" style={{ color: "#a8937a" }} />
+                  </div>
+                  <p style={{ fontSize: 13, color: "#a8937a", maxWidth: 280, lineHeight: 1.5 }}>
+                    {search ? `No customers matching "${search}"` : "No pending credit records. Select a customer when doing a credit sale to track it here."}
+                  </p>
+                </div>
               </td></tr>
             ) : (
               records.map((r) => <CreditRow key={r.id} record={r} />)
