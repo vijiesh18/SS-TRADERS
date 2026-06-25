@@ -231,9 +231,13 @@
   box-shadow: 0 8px 32px rgba(100,80,40,0.14), 0 2px 8px rgba(100,80,40,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
   padding: 9px 22px; font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.4px; white-space: nowrap; pointer-events: none; user-select: none;
   animation: footerSlideUp 0.5s cubic-bezier(.34,1,.64,1) 0.3s both;
+  max-width: min(90vw, 420px); overflow: hidden;
 }
 .glass-footer::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: linear-gradient(135deg, var(--olive), var(--copper)); flex-shrink: 0; }
 .glass-footer::after { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: linear-gradient(135deg, var(--copper), var(--sand)); flex-shrink: 0; }
+.footer-scroll-track { display: block; overflow: hidden; flex: 1; min-width: 0; mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); }
+.footer-scroll-text { display: inline-block; white-space: nowrap; animation: footerMarquee 18s linear infinite; }
+@keyframes footerMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 @keyframes footerSlideUp { from { opacity: 0; transform: translateX(-50%) translateY(16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
  
 @keyframes fadeUp    { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
