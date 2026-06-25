@@ -139,6 +139,10 @@ export default function BillingHistoryPage() {
       )}
 
       <Card>
+        <div style={{ background: "#2c2820", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+          <Receipt size={14} color="rgba(180,155,110,0.8)" />
+          <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Invoice History</span>
+        </div>
         <CardContent className="p-0">
           {isLoading ? (
             <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading...</p>
