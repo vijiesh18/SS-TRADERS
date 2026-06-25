@@ -95,7 +95,7 @@ export default function BillingHistoryPage() {
         <p style={S.subtitle}>All invoices generated from Billing POS</p>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: 12 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: 12, position: "relative", zIndex: 30 }}>
         <div style={{ position: "relative", width: 260 }}>
           <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#a8937a", pointerEvents: "none" }} />
           <input style={S.input} placeholder="Invoice no, customer name or phone" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
