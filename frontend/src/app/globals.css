@@ -750,3 +750,84 @@ input[type="number"], input[type="search"], select, textarea {
   
   
 }
+/* ============================================================
+   SS TRADERS — Universal page theming (all module pages)
+   ============================================================ */
+
+h1.text-2xl {
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: #2c2418;
+}
+
+/* Cards → warm glass surface */
+div[class~="rounded-lg"][class~="border"][class~="bg-card"] {
+  background: rgba(250,247,242,0.95) !important;
+  border: 1px solid rgba(180,155,110,0.22) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8) !important;
+}
+
+/* Table headers: slate-50 → dark walnut */
+thead.bg-slate-50 {
+  background: #2c2820 !important;
+}
+thead.bg-slate-50 th {
+  color: rgba(220,205,180,0.85) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  padding: 12px 16px !important;
+}
+
+/* Table body */
+tbody td {
+  color: #2c2418;
+  border-bottom-color: rgba(180,155,110,0.10) !important;
+}
+tbody tr:hover {
+  background: rgba(180,155,110,0.06) !important;
+}
+
+/* Money cells in copper serif */
+td.text-right.font-medium {
+  color: #c47a3a !important;
+  font-family: Georgia, serif !important;
+  font-weight: 700 !important;
+}
+td.font-medium {
+  color: #2c2418 !important;
+}
+
+/* Primary buttons → olive gradient */
+button[class*="bg-primary"] {
+  background: linear-gradient(135deg,#6b7c45,#8fa05a) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(107,124,69,0.30) !important;
+  font-weight: 700 !important;
+}
+
+/* Tabs */
+[role="tablist"] {
+  background: rgba(245,240,232,0.9) !important;
+  border: 1px solid rgba(180,155,110,0.22) !important;
+  border-radius: 10px !important;
+  padding: 3px !important;
+}
+[role="tab"][data-state="active"] {
+  background: linear-gradient(135deg,#6b7c45,#8fa05a) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+}
+[role="tab"][data-state="inactive"] {
+  color: #6b5d4a !important;
+}
+
+/* Switch active (settings) */
+button[role="switch"][data-state="checked"] {
+  background: #6b7c45 !important;
+}
