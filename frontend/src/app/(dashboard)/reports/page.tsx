@@ -149,7 +149,7 @@ export default function ReportsPage() {
         {/* Sales */}
         <TabsContent value="sales">
           <SectionCard title="Sales Report" exportBtn={<ExportButtons isPending={downloadReport.isPending} onDownload={(f) => download("sales", f)} />}>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 mb-4">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
               <StatCard label="Total Sales" value={sales.isLoading ? "..." : formatCurrency(sales.data?.totalSales || 0)} />
               <StatCard label="Invoices" value={sales.isLoading ? "..." : String(sales.data?.count || 0)} accent={false} />
               <StatCard label="Avg Invoice Value" value={sales.isLoading ? "..." : formatCurrency(sales.data && sales.data.count > 0 ? sales.data.totalSales / sales.data.count : 0)} />
@@ -181,7 +181,7 @@ export default function ReportsPage() {
         {/* Profit */}
         <TabsContent value="profit">
           <SectionCard title="Profit Report" exportBtn={<ExportButtons isPending={downloadReport.isPending} onDownload={(f) => download("profit", f)} />}>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 mb-4">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
               <StatCard label="Total Revenue" value={profit.isLoading ? "..." : formatCurrency(profit.data?.totalRevenue || 0)} />
               <StatCard label="Total Profit" value={profit.isLoading ? "..." : formatCurrency(profit.data?.totalProfit || 0)} />
               <StatCard label="Margin" value={profit.isLoading || !profit.data || profit.data.totalRevenue === 0 ? "..." : `${((profit.data.totalProfit / profit.data.totalRevenue) * 100).toFixed(1)}%`} accent={false} />
@@ -245,7 +245,7 @@ export default function ReportsPage() {
               {gstr1.isLoading ? (
                 <p style={{ fontSize: 13, color: "#a8937a" }}>Loading...</p>
               ) : gstr1.data ? (
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
                   {[
                     { label: "Total Taxable", value: formatCurrency(gstr1.data.totals.totalTaxable) },
                     { label: "Total CGST", value: formatCurrency(gstr1.data.totals.totalCgst) },

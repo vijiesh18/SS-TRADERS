@@ -445,8 +445,8 @@ export default function CreditPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Credit Management</h1>
-        <p className="text-sm text-muted-foreground">Track outstanding balances and collect payments</p>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418" }}>Credit Management</h1>
+        <p style={{ fontSize: 13, color: "#a8937a", marginTop: 5, fontWeight: 500 }}>Track outstanding balances and collect payments</p>
       </div>
 
       {/* Summary */}
