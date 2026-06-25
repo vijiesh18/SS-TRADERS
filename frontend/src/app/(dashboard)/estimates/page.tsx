@@ -2,20 +2,34 @@
 
 import { useState } from "react";
 import { Plus, FileText, ArrowRightCircle, Pencil, Printer, Download } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NewEstimateDialog } from "@/components/estimates/new-estimate-dialog";
 import { ConvertEstimateDialog } from "@/components/estimates/convert-estimate-dialog";
 import { useEstimates, printEstimatePdf, downloadEstimatePdf, type Estimate } from "@/hooks/use-estimates";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
-const STATUS_VARIANT: Record<Estimate["status"], "secondary" | "warning" | "success" | "destructive"> = {
-  DRAFT: "secondary",
-  SENT: "warning",
-  CONVERTED: "success",
-  EXPIRED: "destructive",
+const STATUS_BADGE: Record<Estimate["status"], [string, string]> = {
+  DRAFT: ["rgba(180,155,110,0.14)", "#6b5d4a"],
+  SENT: ["rgba(196,122,58,0.14)", "#8a4a10"],
+  CONVERTED: ["rgba(107,124,69,0.14)", "#4a5e28"],
+  EXPIRED: ["rgba(192,85,42,0.14)", "#7a2010"],
+};
+
+const S = {
+  page: { display: "flex", flexDirection: "column", gap: 16 } as React.CSSProperties,
+  header: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const },
+  title: { fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418", lineHeight: 1.2 } as React.CSSProperties,
+  subtitle: { fontSize: 13, color: "#a8937a", marginTop: 5, fontWeight: 500 } as React.CSSProperties,
+  card: { background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" } as React.CSSProperties,
+  cardHeader: { background: "#2c2820", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 } as React.CSSProperties,
+  cardHeaderText: { fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" } as React.CSSProperties,
+  th: { padding: "12px 16px", fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", color: "rgba(220,205,180,0.85)", whiteSpace: "nowrap" as const, textAlign: "left" as const, background: "#2c2820" } as React.CSSProperties,
+  td: { padding: "12px 16px", fontSize: 13, color: "#2c2418", borderBottom: "1px solid rgba(180,155,110,0.10)" } as React.CSSProperties,
+  money: { color: "#c47a3a", fontFamily: "Georgia, serif", fontWeight: 700 } as React.CSSProperties,
+  btnPrimary: { display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 9, border: "none", background: "linear-gradient(135deg,#6b7c45,#8fa05a)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(107,124,69,0.30)", whiteSpace: "nowrap" as const } as React.CSSProperties,
+  btnGhost: { display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 8px", borderRadius: 7, border: "1px solid rgba(180,155,110,0.25)", background: "rgba(180,155,110,0.06)", color: "#6b5d4a", fontSize: 12, fontWeight: 600, cursor: "pointer" } as React.CSSProperties,
+  tab: (active: boolean): React.CSSProperties => ({ padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: active ? "linear-gradient(135deg,#6b7c45,#8fa05a)" : "transparent", color: active ? "#fff" : "#6b5d4a", boxShadow: active ? "0 2px 8px rgba(107,124,69,0.3)" : "none" }),
+  tablist: { display: "inline-flex", gap: 3, padding: 3, background: "rgba(245,240,232,0.9)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 10 } as React.CSSProperties,
+  badge: (bg: string, c: string): React.CSSProperties => ({ display: "inline-flex", padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: bg, color: c }),
 };
 
 export default function EstimatesPage() {
@@ -26,126 +40,115 @@ export default function EstimatesPage() {
 
   const { data: estimates, isLoading } = useEstimates(statusFilter);
 
+  const tabs: { label: string; value: string | undefined }[] = [
+    { label: "All", value: undefined },
+    { label: "Draft", value: "DRAFT" },
+    { label: "Converted", value: "CONVERTED" },
+  ];
+
   function openNewDialog() {
     setEditTarget(null);
     setDialogOpen(true);
   }
-
   function openEditDialog(est: Estimate) {
     setEditTarget(est);
     setDialogOpen(true);
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={S.page}>
+      <div style={S.header}>
         <div>
-          <h1 className="text-2xl font-semibold">Estimates</h1>
-          <p className="text-sm text-muted-foreground">
-            Create estimates for customers and convert them to GST invoices when confirmed
-          </p>
+          <h1 style={S.title}>Estimates</h1>
+          <p style={S.subtitle}>Create estimates for customers and convert them to GST invoices when confirmed</p>
         </div>
-        <Button onClick={openNewDialog}>
-          <Plus className="h-4 w-4 mr-1" />
-          New Estimate
-        </Button>
+        <button style={S.btnPrimary} onClick={openNewDialog}>
+          <Plus size={15} /> New Estimate
+        </button>
       </div>
 
-      <Tabs defaultValue="all" onValueChange={(v) => setStatusFilter(v === "all" ? undefined : v)}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="DRAFT">Draft</TabsTrigger>
-          <TabsTrigger value="CONVERTED">Converted</TabsTrigger>
-        </TabsList>
+      <div style={S.tablist}>
+        {tabs.map((t) => (
+          <button key={t.label} style={S.tab(statusFilter === t.value)} onClick={() => setStatusFilter(t.value)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value={statusFilter || "all"}>
-          <Card>
-            <CardContent className="p-0 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3">Estimate #</th>
-                    <th className="px-4 py-3">Customer</th>
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3 text-right">Items</th>
-                    <th className="px-4 py-3 text-right">Grand Total</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                        Loading estimates...
-                      </td>
-                    </tr>
-                  ) : !estimates || estimates.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                        <div className="flex flex-col items-center gap-2">
-                          <FileText className="h-8 w-8 text-muted-foreground/50" />
-                          No estimates found.
+      <div style={S.card}>
+        <div style={S.cardHeader}>
+          <FileText size={14} color="rgba(180,155,110,0.8)" />
+          <span style={S.cardHeaderText}>Quotations & Estimates</span>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={S.th}>Estimate #</th>
+                <th style={S.th}>Customer</th>
+                <th style={S.th}>Date</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Items</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Grand Total</th>
+                <th style={S.th}>Status</th>
+                <th style={S.th}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading estimates...</td></tr>
+              ) : !estimates || estimates.length === 0 ? (
+                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                    <FileText size={28} color="rgba(180,155,110,0.5)" />
+                    No estimates found.
+                  </div>
+                </td></tr>
+              ) : (
+                estimates.map((est) => {
+                  const [bg, c] = STATUS_BADGE[est.status];
+                  return (
+                    <tr key={est.id}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,155,110,0.05)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <td style={{ ...S.td, fontWeight: 600 }}>{est.estimateNumber}</td>
+                      <td style={S.td}>{est.customer?.name || "Walk-in"}</td>
+                      <td style={{ ...S.td, color: "#a8937a" }}>{formatDate(est.createdAt)}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}>{est.items.length}</td>
+                      <td style={{ ...S.td, textAlign: "right", ...S.money }}>{formatCurrency(Number(est.grandTotal))}</td>
+                      <td style={S.td}><span style={S.badge(bg, c)}>{est.status}</span></td>
+                      <td style={S.td}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                          {est.status === "DRAFT" && (
+                            <>
+                              <button style={S.btnGhost} onClick={() => openEditDialog(est)}>
+                                <Pencil size={13} /> Edit
+                              </button>
+                              <button style={S.btnGhost} onClick={() => setConvertTarget(est)}>
+                                <ArrowRightCircle size={13} /> Convert
+                              </button>
+                            </>
+                          )}
+                          <button style={S.btnGhost} title="Print" onClick={() => printEstimatePdf(est.id)}>
+                            <Printer size={13} />
+                          </button>
+                          <button style={S.btnGhost} title="Download PDF" onClick={() => downloadEstimatePdf(est.id, est.estimateNumber)}>
+                            <Download size={13} />
+                          </button>
                         </div>
                       </td>
                     </tr>
-                  ) : (
-                    estimates.map((est) => (
-                      <tr key={est.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium">{est.estimateNumber}</td>
-                        <td className="px-4 py-3">{est.customer?.name || "Walk-in"}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{formatDate(est.createdAt)}</td>
-                        <td className="px-4 py-3 text-right">{est.items.length}</td>
-                        <td className="px-4 py-3 text-right font-medium">
-                          {formatCurrency(Number(est.grandTotal))}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant={STATUS_VARIANT[est.status]}>{est.status}</Badge>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {est.status === "DRAFT" && (
-                              <>
-                                <Button size="sm" variant="ghost" onClick={() => openEditDialog(est)}>
-                                  <Pencil className="h-3.5 w-3.5 mr-1" />
-                                  Edit
-                                </Button>
-                                <Button size="sm" variant="ghost" onClick={() => setConvertTarget(est)}>
-                                  <ArrowRightCircle className="h-3.5 w-3.5 mr-1" />
-                                  Convert
-                                </Button>
-                              </>
-                            )}
-                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Print" onClick={() => printEstimatePdf(est.id)}>
-                              <Printer className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Download PDF"
-                              onClick={() => downloadEstimatePdf(est.id, est.estimateNumber)}
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <NewEstimateDialog
         open={dialogOpen}
-        onOpenChange={(o) => {
-          setDialogOpen(o);
-          if (!o) setEditTarget(null);
-        }}
+        onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditTarget(null); }}
         estimate={editTarget}
       />
       <ConvertEstimateDialog estimate={convertTarget} onClose={() => setConvertTarget(null)} />
