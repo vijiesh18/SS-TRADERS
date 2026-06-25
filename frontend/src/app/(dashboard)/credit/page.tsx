@@ -486,13 +486,13 @@ export default function CreditPage() {
 
       {/* Named Customer Credit Records */}
       <Card>
-        <div className="px-4 py-3 border-b bg-slate-50 flex items-center justify-between">
-          <p className="text-sm font-semibold">Credit Records — Named Customers</p>
-          <p className="text-xs text-muted-foreground">Click any row to see payment history ↓</p>
+        <div style={{ background: "#2c2820", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Credit Records — Named Customers</p>
+          <p style={{ fontSize: 11, color: "rgba(180,155,110,0.75)" }}>Click any row to see payment history ↓</p>
         </div>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
+            <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
               <tr>
                 <th className="px-4 py-3">Customer</th>
                 <th className="px-4 py-3">Invoice</th>
@@ -521,15 +521,15 @@ export default function CreditPage() {
       {/* Walk-in Pending Invoices */}
       {pendingInvoices.length > 0 && (
         <Card>
-          <div className="px-4 py-3 border-b bg-amber-50 flex items-center justify-between">
+          <div style={{ background: "#2c2820", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
-              <p className="text-sm font-semibold text-amber-800">Partial / Unpaid Bills — Walk-in</p>
-              <p className="text-xs text-amber-600">Link to a customer to enable installment payment tracking.</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Partial / Unpaid Bills — Walk-in</p>
+              <p style={{ fontSize: 11, color: "rgba(196,122,58,0.85)" }}>Link to a customer to enable installment payment tracking.</p>
             </div>
           </div>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
+              <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
                 <tr>
                   <th className="px-4 py-3">Invoice</th>
                   <th className="px-4 py-3">Date</th>
