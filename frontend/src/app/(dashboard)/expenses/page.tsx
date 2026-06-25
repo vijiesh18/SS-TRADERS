@@ -1,17 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, Trash2, Receipt } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Receipt, Wallet } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { DateRangeFilter } from "@/components/reports/date-range-filter";
-import { AnalyticsCard } from "@/components/dashboard/analytics-card";
 import { ExpenseFormDialog } from "@/components/expenses/expense-form-dialog";
 import { useExpenses, useDeleteExpense, EXPENSE_CATEGORIES } from "@/hooks/use-expenses";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Wallet } from "lucide-react";
 
 function defaultFrom() {
   const d = new Date();
@@ -22,12 +17,32 @@ function defaultTo() {
   return new Date().toISOString().slice(0, 10);
 }
 
-const CATEGORY_COLORS: Record<string, "secondary" | "warning" | "success" | "destructive" | "default"> = {
-  Salary: "default",
-  Rent: "secondary",
-  Electricity: "warning",
-  Transport: "success",
-  Miscellaneous: "destructive",
+const CAT_BADGE: Record<string, [string, string]> = {
+  Salary: ["rgba(107,124,69,0.14)", "#4a5e28"],
+  Rent: ["rgba(180,155,110,0.14)", "#6b5d4a"],
+  Electricity: ["rgba(196,122,58,0.14)", "#8a4a10"],
+  Transport: ["rgba(122,158,126,0.14)", "#2a6035"],
+  Miscellaneous: ["rgba(192,85,42,0.14)", "#7a2010"],
+};
+
+const S = {
+  page: { display: "flex", flexDirection: "column", gap: 16 } as React.CSSProperties,
+  header: { display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const },
+  title: { fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418", lineHeight: 1.2 } as React.CSSProperties,
+  subtitle: { fontSize: 13, color: "#a8937a", marginTop: 5, fontWeight: 500 } as React.CSSProperties,
+  card: { background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" } as React.CSSProperties,
+  cardHeader: { background: "#2c2820", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 } as React.CSSProperties,
+  cardHeaderText: { fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" } as React.CSSProperties,
+  th: { padding: "12px 16px", fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", color: "rgba(220,205,180,0.85)", whiteSpace: "nowrap" as const, textAlign: "left" as const, background: "#2c2820" } as React.CSSProperties,
+  td: { padding: "12px 16px", fontSize: 13, color: "#2c2418", borderBottom: "1px solid rgba(180,155,110,0.10)" } as React.CSSProperties,
+  money: { color: "#c47a3a", fontFamily: "Georgia, serif", fontWeight: 700 } as React.CSSProperties,
+  btnPrimary: { display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 9, border: "none", background: "linear-gradient(135deg,#6b7c45,#8fa05a)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(107,124,69,0.30)", whiteSpace: "nowrap" as const } as React.CSSProperties,
+  btnGhost: { display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 8px", borderRadius: 7, border: "1px solid rgba(180,155,110,0.25)", background: "rgba(180,155,110,0.06)", color: "#6b5d4a", fontSize: 12, fontWeight: 600, cursor: "pointer" } as React.CSSProperties,
+  metric: { background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, padding: "18px 20px", boxShadow: "0 4px 20px rgba(100,80,40,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" } as React.CSSProperties,
+  metricLabel: { fontSize: 12, color: "#a8937a", fontWeight: 600 } as React.CSSProperties,
+  metricValue: { fontSize: 22, fontWeight: 700, fontFamily: "Georgia, serif", color: "#6b7c45", marginTop: 4 } as React.CSSProperties,
+  metricIcon: { width: 44, height: 44, borderRadius: 11, background: "rgba(192,85,42,0.12)", color: "#c0552a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } as React.CSSProperties,
+  badge: (bg: string, c: string): React.CSSProperties => ({ display: "inline-flex", padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: bg, color: c }),
 };
 
 export default function ExpensesPage() {
@@ -52,109 +67,104 @@ export default function ExpensesPage() {
   }, [data]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div style={S.page}>
+      <div style={S.header}>
         <div>
-          <h1 className="text-2xl font-semibold">Expenses</h1>
-          <p className="text-sm text-muted-foreground">
-            Track salary, rent, electricity, transport and miscellaneous expenses
-          </p>
+          <h1 style={S.title}>Expenses</h1>
+          <p style={S.subtitle}>Track salary, rent, electricity, transport and miscellaneous expenses</p>
         </div>
-        <div className="flex items-end gap-3">
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
           <DateRangeFilter from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); }} />
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add Expense
-          </Button>
+          <button style={S.btnPrimary} onClick={() => setDialogOpen(true)}>
+            <Plus size={15} /> Add Expense
+          </button>
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <AnalyticsCard
-          label="Total Expenses (period)"
-          value={isLoading ? "..." : formatCurrency(data?.totalAmount || 0)}
-          icon={Wallet}
-          accent="danger"
-        />
+      {/* Metrics */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
+        <div style={S.metric}>
+          <div>
+            <div style={S.metricLabel}>Total Expenses (period)</div>
+            <div style={{ ...S.metricValue, color: "#c0552a" }}>{isLoading ? "..." : formatCurrency(data?.totalAmount || 0)}</div>
+          </div>
+          <div style={S.metricIcon}><Wallet size={20} /></div>
+        </div>
         {breakdown.slice(0, 3).map(([cat, amt]) => (
-          <AnalyticsCard key={cat} label={cat} value={formatCurrency(amt)} icon={Receipt} />
+          <div key={cat} style={S.metric}>
+            <div>
+              <div style={S.metricLabel}>{cat}</div>
+              <div style={S.metricValue}>{formatCurrency(amt)}</div>
+            </div>
+            <div style={{ ...S.metricIcon, background: "rgba(107,124,69,0.12)", color: "#6b7c45" }}><Receipt size={20} /></div>
+          </div>
         ))}
       </div>
 
       {/* Filter */}
-      <Card>
-        <CardContent className="p-4">
+      <div style={S.card}>
+        <div style={{ padding: "12px 16px" }}>
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
+            <SelectTrigger className="w-48"><SelectValue placeholder="All Categories" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {EXPENSE_CATEGORIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
+                <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Table */}
-      <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
+      <div style={S.card}>
+        <div style={S.cardHeader}>
+          <Receipt size={14} color="rgba(180,155,110,0.8)" />
+          <span style={S.cardHeaderText}>Expense Records</span>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Entered By</th>
-                <th className="px-4 py-3 text-right">Amount</th>
-                <th className="px-4 py-3"></th>
+                <th style={S.th}>Date</th>
+                <th style={S.th}>Category</th>
+                <th style={S.th}>Description</th>
+                <th style={S.th}>Entered By</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Amount</th>
+                <th style={S.th}></th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading expenses...
-                  </td>
-                </tr>
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading expenses...</td></tr>
               ) : !data || data.items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                    No expenses recorded for this period.
-                  </td>
-                </tr>
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>No expenses recorded for this period.</td></tr>
               ) : (
-                data.items.map((e) => (
-                  <tr key={e.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(e.expenseDate)}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={CATEGORY_COLORS[e.category] || "secondary"}>{e.category}</Badge>
-                    </td>
-                    <td className="px-4 py-3">{e.description || "-"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{e.enteredBy.name}</td>
-                    <td className="px-4 py-3 text-right font-medium">{formatCurrency(Number(e.amount))}</td>
-                    <td className="px-4 py-3 text-right">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-red-500 hover:text-red-600"
-                        onClick={() => deleteExpense.mutate(e.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))
+                data.items.map((e) => {
+                  const [bg, c] = CAT_BADGE[e.category] || ["rgba(180,155,110,0.14)", "#6b5d4a"];
+                  return (
+                    <tr key={e.id}
+                      onMouseEnter={(ev) => (ev.currentTarget.style.background = "rgba(180,155,110,0.05)")}
+                      onMouseLeave={(ev) => (ev.currentTarget.style.background = "transparent")}
+                    >
+                      <td style={{ ...S.td, color: "#a8937a" }}>{formatDate(e.expenseDate)}</td>
+                      <td style={S.td}><span style={S.badge(bg, c)}>{e.category}</span></td>
+                      <td style={S.td}>{e.description || "-"}</td>
+                      <td style={{ ...S.td, color: "#a8937a" }}>{e.enteredBy.name}</td>
+                      <td style={{ ...S.td, textAlign: "right", ...S.money }}>{formatCurrency(Number(e.amount))}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}>
+                        <button style={S.btnGhost} onClick={() => deleteExpense.mutate(e.id)}>
+                          <Trash2 size={13} color="#c0552a" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <ExpenseFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
