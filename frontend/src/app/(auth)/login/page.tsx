@@ -164,10 +164,10 @@ export default function LoginPage() {
       </div>
       <div className="paint-grid" aria-hidden="true" />
 
-      <div style={{ minHeight:"100vh", display:"flex", position:"relative", zIndex:1 }}>
+      <div style={{ minHeight:"100vh", display:"flex", position:"relative", zIndex:1 }} className="login-wrapper">
 
         {/* ── LEFT PANEL — brand ─────────────────────────── */}
-        <div style={{
+        <div className="login-brand-panel" style={{
           width: "52%",
           background: "linear-gradient(145deg, #3d4d28 0%, #6b7c45 45%, #8fa05a 100%)",
           position: "relative",
@@ -239,7 +239,7 @@ export default function LoginPage() {
         </div>
 
         {/* ── RIGHT PANEL — form ─────────────────────────── */}
-        <div style={{
+        <div className="login-form-panel" style={{
           flex: 1,
           display: "flex",
           alignItems: "center",
@@ -250,9 +250,22 @@ export default function LoginPage() {
         }}>
           <div style={{ width:"100%", maxWidth:400 }} className="anim-scale-in">
 
+            {/* Mobile-only brand header — hidden on desktop via CSS */}
+            <div className="login-mobile-brand" style={{ display:"none", textAlign:"center", marginBottom:28 }}>
+              <div style={{ display:"inline-flex", alignItems:"center", gap:10, marginBottom:6 }}>
+                <div style={{ width:40, height:40, background:"linear-gradient(135deg,#6b7c45,#8fa05a)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <Paintbrush size={18} color="#fff" />
+                </div>
+                <div style={{ textAlign:"left" }}>
+                  <div style={{ fontSize:18, fontWeight:800, color:"#2c2418", letterSpacing:"-0.3px", fontFamily:"Georgia,serif" }}>S.S Traders</div>
+                  <div style={{ fontSize:10, color:"#a8937a", textTransform:"uppercase", letterSpacing:"1px" }}>Smart POS · Nagercoil</div>
+                </div>
+              </div>
+            </div>
+
             {/* Form header */}
             <div style={{ marginBottom:36 }}>
-              <div style={{ width:52, height:52, background:"linear-gradient(135deg,#6b7c45,#8fa05a)", borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:20, boxShadow:"0 6px 20px rgba(107,124,69,0.35)" }}>
+              <div className="login-desktop-icon" style={{ width:52, height:52, background:"linear-gradient(135deg,#6b7c45,#8fa05a)", borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:20, boxShadow:"0 6px 20px rgba(107,124,69,0.35)" }}>
                 <Paintbrush size={22} color="#fff" />
               </div>
               <h2 style={{ fontSize:26, fontWeight:800, color:"#2c2418", letterSpacing:"-0.5px", margin:"0 0 6px", fontFamily:"Georgia,serif" }}>
