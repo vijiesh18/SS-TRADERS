@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
+import { useAuthStore } from "@/store/auth-store";
 
 const PAGE_META: Record<string, { title: string; sub: string }> = {
   "/dashboard":       { title: "Dashboard",        sub: "Overview & analytics" },
@@ -39,6 +40,7 @@ function Clock() {
 
 export function TopBar() {
   const pathname = usePathname();
+  const isDemo = useAuthStore((s) => s.user?.isDemo);
   const meta =
     PAGE_META[pathname] ??
     Object.entries(PAGE_META).find(([k]) => pathname?.startsWith(k))?.[1] ??
@@ -49,6 +51,16 @@ export function TopBar() {
   });
 
   return (
+    <>
+    {isDemo && (
+      <div style={{
+        background: "linear-gradient(135deg, #c47a3a, #e8a45a)", color: "#fff",
+        textAlign: "center", padding: "6px 12px", fontSize: 12, fontWeight: 700,
+        letterSpacing: "0.5px", zIndex: 41, position: "sticky", top: 0,
+      }}>
+        DEMO MODE — Explore freely, nothing is saved to the database
+      </div>
+    )}
     <header className="topbar-glass">
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:16, fontWeight:700, letterSpacing:"-0.3px", color:"#2c2418", lineHeight:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
@@ -81,5 +93,6 @@ export function TopBar() {
         + New Bill
       </Link>
     </header>
+    </>
   );
 }

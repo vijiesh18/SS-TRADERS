@@ -35,7 +35,8 @@ export async function login(req: Request, res: Response) {
     data: { userId: user.id, token: refreshToken, userAgent: req.headers["user-agent"], ipAddress: ip, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
   });
   await recordAudit({ userId: user.id, action: AUDIT_ACTIONS.LOGIN, ipAddress: ip });
-  return res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, permissions: ROLE_PERMISSIONS[user.role] } });
+  const isDemo = user.email === "demo@sstraders.com";
+  return res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, permissions: ROLE_PERMISSIONS[user.role], isDemo } });
 }
 
 export async function refresh(req: Request, res: Response) {

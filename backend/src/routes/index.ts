@@ -16,10 +16,15 @@ import dashboardRoutes from "@/routes/dashboard.routes";
 import userRoutes from "@/routes/users.routes";
 import settingsRoutes from "@/routes/settings.routes";
 import auditRoutes from "@/routes/audit.routes";
+import { demoGuard } from "@/middleware/demo";
 
 const router = Router();
 
+// Auth routes first (no demo guard needed — login must work)
 router.use("/auth", authRoutes);
+
+// Demo guard — intercepts all subsequent routes for demo users
+router.use(demoGuard);
 router.use("/products", productRoutes);
 router.use("/inventory", inventoryRoutes);
 router.use("/billing", billingRoutes);
