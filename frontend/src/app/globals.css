@@ -862,3 +862,22 @@ button[role="switch"][data-state="checked"] {
   background: rgba(250,247,242,0.6) !important;
   border-radius: 10px !important;
 }
+/* Fix ShadCN Select/dropdown popups - solid bg, on top */
+[role="listbox"],
+[data-radix-popper-content-wrapper],
+[data-radix-select-content] {
+  background: rgba(250,247,242,0.99) !important;
+  border: 1px solid rgba(180,155,110,0.35) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 32px rgba(100,80,40,0.20) !important;
+  z-index: 9999 !important;
+}
+[role="option"] {
+  color: #2c2418 !important;
+  background: transparent !important;
+}
+[role="option"]:hover,
+[role="option"][data-highlighted] {
+  background: rgba(107,124,69,0.10) !important;
+  color: #2c2418 !important;
+}
