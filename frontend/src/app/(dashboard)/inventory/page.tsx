@@ -1,45 +1,49 @@
 "use client";
 
 import { useState } from "react";
-import {
-  AlertTriangle, Archive, Zap, History, Plus, Search,
-  Pencil, PackagePlus, X, Check,
-} from "lucide-react";
+import { AlertTriangle, Archive, Zap, History, Plus, Search, Pencil, PackagePlus, X, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { StockHistoryDialog } from "@/components/inventory/stock-history-dialog";
-import {
-  useLowStock, useDeadStock, useFastMoving,
-  useProducts, useCategories, useCreateProduct, useUpdateProduct,
-  type ProductItem,
-} from "@/hooks/use-inventory";
+import { useLowStock, useDeadStock, useFastMoving, useProducts, useCategories, useCreateProduct, useUpdateProduct, type ProductItem } from "@/hooks/use-inventory";
 import { useStockAdjustment } from "@/hooks/use-inventory";
 import { useAuthStore } from "@/store/auth-store";
 import { formatCurrency } from "@/lib/utils";
 
-// ──────────────────────────────────────────────────────────────
-// Quick Add-Stock Dialog (inline popup)
-// ──────────────────────────────────────────────────────────────
-function QuickStockDialog({
-  product, onClose,
-}: { product: ProductItem; onClose: () => void }) {
+const S = {
+  page: { display: "flex", flexDirection: "column", gap: 16 } as React.CSSProperties,
+  title: { fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418", lineHeight: 1.2 } as React.CSSProperties,
+  subtitle: { fontSize: 13, color: "#a8937a", marginTop: 5, fontWeight: 500 } as React.CSSProperties,
+  card: { background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" } as React.CSSProperties,
+  cardHeader: { background: "#2c2820", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 } as React.CSSProperties,
+  cardHeaderText: { fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" } as React.CSSProperties,
+  th: { padding: "12px 16px", fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", color: "rgba(220,205,180,0.85)", whiteSpace: "nowrap" as const, textAlign: "left" as const, background: "#2c2820" } as React.CSSProperties,
+  td: { padding: "12px 16px", fontSize: 13, color: "#2c2418", borderBottom: "1px solid rgba(180,155,110,0.10)" } as React.CSSProperties,
+  money: { color: "#c47a3a", fontFamily: "Georgia, serif", fontWeight: 700 } as React.CSSProperties,
+  btnPrimary: { display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 9, border: "none", background: "linear-gradient(135deg,#6b7c45,#8fa05a)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(107,124,69,0.30)", whiteSpace: "nowrap" as const } as React.CSSProperties,
+  btnGhost: { display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 8px", borderRadius: 7, border: "1px solid rgba(180,155,110,0.25)", background: "rgba(180,155,110,0.06)", color: "#6b5d4a", fontSize: 12, fontWeight: 600, cursor: "pointer" } as React.CSSProperties,
+  input: { background: "rgba(255,252,248,0.9)", border: "1px solid rgba(180,155,110,0.30)", borderRadius: 8, padding: "9px 12px 9px 36px", fontSize: 13, color: "#2c2418", width: "100%", outline: "none" } as React.CSSProperties,
+  tab: (active: boolean): React.CSSProperties => ({ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: active ? "linear-gradient(135deg,#6b7c45,#8fa05a)" : "transparent", color: active ? "#fff" : "#6b5d4a", boxShadow: active ? "0 2px 8px rgba(107,124,69,0.3)" : "none" }),
+  tablist: { display: "inline-flex", gap: 3, padding: 3, background: "rgba(245,240,232,0.9)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 10, flexWrap: "wrap" as const } as React.CSSProperties,
+  badge: (bg: string, c: string): React.CSSProperties => ({ display: "inline-flex", padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: bg, color: c }),
+};
+
+const WARN_BADGE: [string, string] = ["rgba(196,122,58,0.14)", "#8a4a10"];
+const OK_BADGE: [string, string] = ["rgba(180,155,110,0.14)", "#6b5d4a"];
+const SUCCESS_BADGE: [string, string] = ["rgba(107,124,69,0.14)", "#4a5e28"];
+
+// ─── Quick Add-Stock Dialog (unchanged logic) ───
+function QuickStockDialog({ product, onClose }: { product: ProductItem; onClose: () => void }) {
   const [qty, setQty] = useState("");
   const [note, setNote] = useState("Stock received");
   const adjustment = useStockAdjustment();
 
   async function handleSubmit() {
     if (!qty || isNaN(Number(qty)) || Number(qty) === 0) return;
-    await adjustment.mutateAsync({
-      productId: product.id,
-      direction: "IN",
-      quantity: Number(qty),
-      reason: note || "Stock received",
-    });
+    await adjustment.mutateAsync({ productId: product.id, direction: "IN", quantity: Number(qty), reason: note || "Stock received" });
     onClose();
   }
 
@@ -55,14 +59,7 @@ function QuickStockDialog({
           <p className="text-xs text-muted-foreground">Current stock: {Number(product.stockQuantity)}</p>
           <div className="space-y-1.5">
             <Label className="text-xs">Quantity to Add</Label>
-            <Input
-              type="number"
-              placeholder="e.g. 10"
-              value={qty}
-              min={1}
-              onChange={(e) => setQty(e.target.value)}
-              autoFocus
-            />
+            <Input type="number" placeholder="e.g. 10" value={qty} min={1} onChange={(e) => setQty(e.target.value)} autoFocus />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Note</Label>
@@ -81,12 +78,8 @@ function QuickStockDialog({
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-// Product Edit / Add Dialog
-// ──────────────────────────────────────────────────────────────
-function ProductDialog({
-  product, onClose,
-}: { product: ProductItem | null; onClose: () => void }) {
+// ─── Product Edit / Add Dialog (unchanged logic) ───
+function ProductDialog({ product, onClose }: { product: ProductItem | null; onClose: () => void }) {
   const isNew = !product;
   const { data: cats } = useCategories();
   const createProduct = useCreateProduct();
@@ -143,7 +136,6 @@ function ProductDialog({
             <p className="text-lg font-semibold">{isNew ? "Add New Product" : "Edit Product"}</p>
             <button onClick={onClose}><X className="h-4 w-4 text-muted-foreground" /></button>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-1.5">
               <Label className="text-xs">Product Name *</Label>
@@ -162,9 +154,7 @@ function ProductDialog({
               <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
                 <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
-                  {(cats || []).map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
+                  {(cats || []).map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
@@ -173,9 +163,7 @@ function ProductDialog({
               <Select value={form.unit} onValueChange={(v) => set("unit", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {["PCS", "LTR", "KG", "PACK", "BOX", "NOS", "CAN"].map((u) => (
-                    <SelectItem key={u} value={u}>{u}</SelectItem>
-                  ))}
+                  {["PCS", "LTR", "KG", "PACK", "BOX", "NOS", "CAN"].map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
@@ -210,9 +198,7 @@ function ProductDialog({
               <Input type="number" value={form.minimumStock} onChange={(e) => set("minimumStock", Number(e.target.value))} />
             </div>
           </div>
-
           {err && <p className="text-sm text-red-500">{err}</p>}
-
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={isSaving}>
@@ -226,9 +212,7 @@ function ProductDialog({
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-// All Products Tab
-// ──────────────────────────────────────────────────────────────
+// ─── All Products Tab ───
 function AllProductsTab({ canEdit }: { canEdit: boolean }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -239,112 +223,98 @@ function AllProductsTab({ canEdit }: { canEdit: boolean }) {
   const { data, isLoading } = useProducts({ search: search || undefined, page, limit: 30 });
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Search by product name or code..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          />
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#a8937a", pointerEvents: "none" }} />
+          <input style={S.input} placeholder="Search by product name or code..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
         {canEdit && (
-          <Button onClick={() => setEditProduct("new")}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add New Product
-          </Button>
+          <button style={S.btnPrimary} onClick={() => setEditProduct("new")}>
+            <Plus size={15} /> Add New Product
+          </button>
         )}
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
+      <div style={S.card}>
+        <div style={S.cardHeader}>
+          <span style={S.cardHeaderText}>Product Inventory</span>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3 text-right">Stock</th>
-                <th className="px-4 py-3 text-right">Selling Price</th>
-                <th className="px-4 py-3 text-right">Purchase Price</th>
-                <th className="px-4 py-3"></th>
+                <th style={S.th}>Product</th>
+                <th style={S.th}>Category</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Stock</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Selling Price</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Purchase Price</th>
+                <th style={S.th}></th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} className="py-10 text-center text-muted-foreground">Loading...</td></tr>
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading...</td></tr>
               ) : !data || data.items.length === 0 ? (
-                <tr><td colSpan={6} className="py-10 text-center text-muted-foreground">
-                  {search ? `No products matching "${search}"` : "No products yet. Click Add New Product to get started."}
-                </td></tr>
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>{search ? `No products matching "${search}"` : "No products yet. Click Add New Product to get started."}</td></tr>
               ) : (
-                data.items.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <p className="font-medium">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">{p.productCode} {p.unit && `· ${p.unit}`}</p>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{p.category?.name || "-"}</td>
-                    <td className="px-4 py-3 text-right">
-                      <Badge variant={Number(p.stockQuantity) <= Number(p.minimumStock) ? "warning" : "secondary"}>
-                        {Number(p.stockQuantity)}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-right">{formatCurrency(Number(p.sellingPrice))}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{formatCurrency(Number(p.purchasePrice))}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-1">
-                        {canEdit && (
-                          <>
-                            <Button size="sm" variant="ghost" title="Add Stock" onClick={() => setStockProduct(p)}>
-                              <PackagePlus className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button size="sm" variant="ghost" title="Edit Product" onClick={() => setEditProduct(p)}>
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                          </>
-                        )}
-                        <Button size="sm" variant="ghost" title="Stock History" onClick={() => setHistoryTarget({ id: p.id, name: p.name })}>
-                          <History className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                data.items.map((p) => {
+                  const low = Number(p.stockQuantity) <= Number(p.minimumStock);
+                  const [bg, c] = low ? WARN_BADGE : OK_BADGE;
+                  return (
+                    <tr key={p.id}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,155,110,0.05)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <td style={S.td}>
+                        <p style={{ fontWeight: 600 }}>{p.name}</p>
+                        <p style={{ fontSize: 11, color: "#a8937a", marginTop: 2 }}>{p.productCode} {p.unit && `· ${p.unit}`}</p>
+                      </td>
+                      <td style={{ ...S.td, color: "#a8937a", fontSize: 12 }}>{p.category?.name || "-"}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}><span style={S.badge(bg, c)}>{Number(p.stockQuantity)}</span></td>
+                      <td style={{ ...S.td, textAlign: "right", ...S.money }}>{formatCurrency(Number(p.sellingPrice))}</td>
+                      <td style={{ ...S.td, textAlign: "right", color: "#a8937a" }}>{formatCurrency(Number(p.purchasePrice))}</td>
+                      <td style={S.td}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                          {canEdit && (
+                            <>
+                              <button style={S.btnGhost} title="Add Stock" onClick={() => setStockProduct(p)}><PackagePlus size={13} /></button>
+                              <button style={S.btnGhost} title="Edit Product" onClick={() => setEditProduct(p)}><Pencil size={13} /></button>
+                            </>
+                          )}
+                          <button style={S.btnGhost} title="Stock History" onClick={() => setHistoryTarget({ id: p.id, name: p.name })}><History size={13} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {data && data.total > data.limit && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#a8937a" }}>
           <p>Showing {(page - 1) * data.limit + 1}–{Math.min(page * data.limit, data.total)} of {data.total}</p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-            <Button variant="outline" size="sm" disabled={page * data.limit >= data.total} onClick={() => setPage((p) => p + 1)}>Next</Button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ ...S.btnGhost, opacity: page === 1 ? 0.5 : 1, padding: "7px 14px" }} disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</button>
+            <button style={{ ...S.btnGhost, opacity: page * data.limit >= data.total ? 0.5 : 1, padding: "7px 14px" }} disabled={page * data.limit >= data.total} onClick={() => setPage((p) => p + 1)}>Next</button>
           </div>
         </div>
       )}
 
-      {/* Dialogs */}
       {editProduct === "new" && <ProductDialog product={null} onClose={() => setEditProduct(null)} />}
       {editProduct && editProduct !== "new" && <ProductDialog product={editProduct} onClose={() => setEditProduct(null)} />}
       {stockProduct && <QuickStockDialog product={stockProduct} onClose={() => setStockProduct(null)} />}
-      <StockHistoryDialog
-        productId={historyTarget?.id || null}
-        productName={historyTarget?.name}
-        onClose={() => setHistoryTarget(null)}
-      />
+      <StockHistoryDialog productId={historyTarget?.id || null} productName={historyTarget?.name} onClose={() => setHistoryTarget(null)} />
     </div>
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-// Main Inventory Page
-// ──────────────────────────────────────────────────────────────
+// ─── Main Inventory Page ───
 export default function InventoryPage() {
+  const [tab, setTab] = useState("all-products");
   const [historyTarget, setHistoryTarget] = useState<{ id: string; name: string } | null>(null);
   const canEdit = useAuthStore((s) => s.hasPermission("*"));
 
@@ -353,160 +323,126 @@ export default function InventoryPage() {
   const { data: fastMoving, isLoading: fastMovingLoading } = useFastMoving(30);
 
   return (
-    <div className="space-y-6">
+    <div style={S.page}>
       <div>
-        <h1 className="text-2xl font-semibold">Inventory</h1>
-        <p className="text-sm text-muted-foreground">Manage products, update prices, add stock</p>
+        <h1 style={S.title}>Inventory</h1>
+        <p style={S.subtitle}>Manage products, update prices, add stock</p>
       </div>
 
-      <Tabs defaultValue="all-products">
-        <TabsList>
-          <TabsTrigger value="all-products">All Products</TabsTrigger>
-          <TabsTrigger value="low-stock">
-            <AlertTriangle className="h-4 w-4 mr-1.5" />
-            Low Stock
-          </TabsTrigger>
-          <TabsTrigger value="dead-stock">
-            <Archive className="h-4 w-4 mr-1.5" />
-            Dead Stock
-          </TabsTrigger>
-          <TabsTrigger value="fast-moving">
-            <Zap className="h-4 w-4 mr-1.5" />
-            Fast Moving
-          </TabsTrigger>
-        </TabsList>
+      <div style={S.tablist}>
+        <button style={S.tab(tab === "all-products")} onClick={() => setTab("all-products")}>All Products</button>
+        <button style={S.tab(tab === "low-stock")} onClick={() => setTab("low-stock")}><AlertTriangle size={14} /> Low Stock</button>
+        <button style={S.tab(tab === "dead-stock")} onClick={() => setTab("dead-stock")}><Archive size={14} /> Dead Stock</button>
+        <button style={S.tab(tab === "fast-moving")} onClick={() => setTab("fast-moving")}><Zap size={14} /> Fast Moving</button>
+      </div>
 
-        {/* All Products */}
-        <TabsContent value="all-products">
-          <AllProductsTab canEdit={canEdit} />
-        </TabsContent>
+      {tab === "all-products" && <AllProductsTab canEdit={canEdit} />}
 
-        {/* Low Stock */}
-        <TabsContent value="low-stock">
-          <Card>
-            <CardContent className="p-0 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3">Product</th>
-                    <th className="px-4 py-3">Code</th>
-                    <th className="px-4 py-3 text-right">Current Stock</th>
-                    <th className="px-4 py-3 text-right">Minimum</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {lowStockLoading ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Loading...</td></tr>
-                  ) : !lowStock || lowStock.length === 0 ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">All products are well stocked.</td></tr>
-                  ) : (
-                    lowStock.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium">{item.name}</td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">{item.productCode}</td>
-                        <td className="px-4 py-3 text-right"><Badge variant="warning">{Number(item.stockQuantity)}</Badge></td>
-                        <td className="px-4 py-3 text-right text-muted-foreground">{Number(item.minimumStock)}</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button size="sm" variant="ghost" onClick={() => setHistoryTarget({ id: item.id, name: item.name })}>
-                            <History className="h-3.5 w-3.5 mr-1" />History
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {tab === "low-stock" && (
+        <div style={S.card}>
+          <div style={S.cardHeader}><AlertTriangle size={14} color="rgba(180,155,110,0.8)" /><span style={S.cardHeaderText}>Low Stock</span></div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>
+                <th style={S.th}>Product</th><th style={S.th}>Code</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Current Stock</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Minimum</th><th style={S.th}></th>
+              </tr></thead>
+              <tbody>
+                {lowStockLoading ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>Loading...</td></tr>
+                ) : !lowStock || lowStock.length === 0 ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>All products are well stocked.</td></tr>
+                ) : (
+                  lowStock.map((item) => (
+                    <tr key={item.id} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,155,110,0.05)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                      <td style={{ ...S.td, fontWeight: 600 }}>{item.name}</td>
+                      <td style={{ ...S.td, fontSize: 11, color: "#a8937a" }}>{item.productCode}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}><span style={S.badge(WARN_BADGE[0], WARN_BADGE[1])}>{Number(item.stockQuantity)}</span></td>
+                      <td style={{ ...S.td, textAlign: "right", color: "#a8937a" }}>{Number(item.minimumStock)}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}>
+                        <button style={S.btnGhost} onClick={() => setHistoryTarget({ id: item.id, name: item.name })}><History size={13} /> History</button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-        {/* Dead Stock */}
-        <TabsContent value="dead-stock">
-          <Card>
-            <CardContent className="p-0 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3">Product</th>
-                    <th className="px-4 py-3 text-right">Stock</th>
-                    <th className="px-4 py-3 text-right">Selling Price</th>
-                    <th className="px-4 py-3 text-right">Value</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {deadStockLoading ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Loading...</td></tr>
-                  ) : !deadStock || deadStock.items.length === 0 ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No dead stock found.</td></tr>
-                  ) : (
-                    deadStock.items.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium">{item.name}</td>
-                        <td className="px-4 py-3 text-right">{Number(item.stockQuantity)}</td>
-                        <td className="px-4 py-3 text-right">{formatCurrency(Number(item.sellingPrice))}</td>
-                        <td className="px-4 py-3 text-right font-medium">{formatCurrency(Number(item.stockQuantity) * Number(item.sellingPrice))}</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button size="sm" variant="ghost" onClick={() => setHistoryTarget({ id: item.id, name: item.name })}>
-                            <History className="h-3.5 w-3.5 mr-1" />History
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {tab === "dead-stock" && (
+        <div style={S.card}>
+          <div style={S.cardHeader}><Archive size={14} color="rgba(180,155,110,0.8)" /><span style={S.cardHeaderText}>Dead Stock</span></div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>
+                <th style={S.th}>Product</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Stock</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Selling Price</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Value</th><th style={S.th}></th>
+              </tr></thead>
+              <tbody>
+                {deadStockLoading ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>Loading...</td></tr>
+                ) : !deadStock || deadStock.items.length === 0 ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>No dead stock found.</td></tr>
+                ) : (
+                  deadStock.items.map((item) => (
+                    <tr key={item.id} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,155,110,0.05)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                      <td style={{ ...S.td, fontWeight: 600 }}>{item.name}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}>{Number(item.stockQuantity)}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}>{formatCurrency(Number(item.sellingPrice))}</td>
+                      <td style={{ ...S.td, textAlign: "right", ...S.money }}>{formatCurrency(Number(item.stockQuantity) * Number(item.sellingPrice))}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}>
+                        <button style={S.btnGhost} onClick={() => setHistoryTarget({ id: item.id, name: item.name })}><History size={13} /> History</button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-        {/* Fast Moving */}
-        <TabsContent value="fast-moving">
-          <Card>
-            <CardContent className="p-0 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3">Product</th>
-                    <th className="px-4 py-3 text-right">Qty Sold</th>
-                    <th className="px-4 py-3 text-right">Current Stock</th>
-                    <th className="px-4 py-3 text-right">Selling Price</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {fastMovingLoading ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Loading...</td></tr>
-                  ) : !fastMoving || fastMoving.items.length === 0 ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No sales recorded yet.</td></tr>
-                  ) : (
-                    fastMoving.items.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium">{item.name}</td>
-                        <td className="px-4 py-3 text-right"><Badge variant="success">{Number(item.quantitySold)}</Badge></td>
-                        <td className="px-4 py-3 text-right">{Number(item.stockQuantity)}</td>
-                        <td className="px-4 py-3 text-right">{formatCurrency(Number(item.sellingPrice))}</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button size="sm" variant="ghost" onClick={() => setHistoryTarget({ id: item.id, name: item.name })}>
-                            <History className="h-3.5 w-3.5 mr-1" />History
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {tab === "fast-moving" && (
+        <div style={S.card}>
+          <div style={S.cardHeader}><Zap size={14} color="rgba(180,155,110,0.8)" /><span style={S.cardHeaderText}>Fast Moving</span></div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>
+                <th style={S.th}>Product</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Qty Sold</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Current Stock</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Selling Price</th><th style={S.th}></th>
+              </tr></thead>
+              <tbody>
+                {fastMovingLoading ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>Loading...</td></tr>
+                ) : !fastMoving || fastMoving.items.length === 0 ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>No sales recorded yet.</td></tr>
+                ) : (
+                  fastMoving.items.map((item) => (
+                    <tr key={item.id} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,155,110,0.05)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                      <td style={{ ...S.td, fontWeight: 600 }}>{item.name}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}><span style={S.badge(SUCCESS_BADGE[0], SUCCESS_BADGE[1])}>{Number(item.quantitySold)}</span></td>
+                      <td style={{ ...S.td, textAlign: "right" }}>{Number(item.stockQuantity)}</td>
+                      <td style={{ ...S.td, textAlign: "right", ...S.money }}>{formatCurrency(Number(item.sellingPrice))}</td>
+                      <td style={{ ...S.td, textAlign: "right" }}>
+                        <button style={S.btnGhost} onClick={() => setHistoryTarget({ id: item.id, name: item.name })}><History size={13} /> History</button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-      <StockHistoryDialog
-        productId={historyTarget?.id || null}
-        productName={historyTarget?.name}
-        onClose={() => setHistoryTarget(null)}
-      />
+      <StockHistoryDialog productId={historyTarget?.id || null} productName={historyTarget?.name} onClose={() => setHistoryTarget(null)} />
     </div>
   );
 }
