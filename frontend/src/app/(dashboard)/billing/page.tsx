@@ -249,14 +249,14 @@ export default function BillingPage() {
                   onFocus={(e) => { e.target.style.borderColor = "#6b7c45"; e.target.style.boxShadow = "0 0 0 3px rgba(107,124,69,0.10)"; }}
                   onBlur={(e) => { e.target.style.borderColor = "rgba(180,155,110,0.30)"; e.target.style.boxShadow = "none"; }}
                 />
-                {customerQuery && customerResults?.results?.length > 0 && !customerId && (
+                {customerQuery && (customerResults?.results?.length ?? 0) > 0 && !customerId && (
                   <div style={{
                     position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20,
                     background: "rgba(250,247,242,0.98)", border: "1px solid rgba(180,155,110,0.30)",
                     borderRadius: 10, boxShadow: "0 8px 24px rgba(100,80,40,0.14)",
                     marginTop: 4, overflow: "hidden",
                   }}>
-                    {customerResults.results.map((c: any) => (
+                    {customerResults?.results.map((c: any) => (
                       <button key={c.id} onClick={() => { setCustomer(c.id, c.name); setCustomerQuery(""); setMobileNo(c.phone); }}
                         style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 12px", textAlign: "left", background: "transparent", border: "none", borderBottom: "1px solid rgba(180,155,110,0.12)", cursor: "pointer" }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(107,124,69,0.07)")}
