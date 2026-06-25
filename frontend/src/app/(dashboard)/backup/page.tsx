@@ -1,25 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { DatabaseBackup, Download, RotateCcw, RefreshCw } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { DatabaseBackup, Download, RotateCcw, RefreshCw, ShieldCheck, Clock, HardDrive } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RestoreBackupDialog } from "@/components/backup/restore-backup-dialog";
 import { useBackups, useCreateBackup, downloadBackup, type Backup } from "@/hooks/use-backup";
 import { formatDate } from "@/lib/utils";
 
-const TYPE_VARIANT: Record<Backup["type"], "secondary" | "default" | "outline"> = {
-  MANUAL: "default",
-  DAILY: "secondary",
-  WEEKLY: "outline",
+const TYPE_COLORS: Record<Backup["type"], [string, string]> = {
+  MANUAL: ["rgba(107,124,69,0.14)", "#4a5e28"],
+  DAILY: ["rgba(196,122,58,0.14)", "#8a4a10"],
+  WEEKLY: ["rgba(180,155,110,0.14)", "#6b5d4a"],
 };
 
-const STATUS_VARIANT: Record<Backup["status"], "success" | "warning" | "destructive" | "secondary"> = {
-  COMPLETED: "success",
-  PENDING: "warning",
-  FAILED: "destructive",
-  RESTORED: "secondary",
+const STATUS_COLORS: Record<Backup["status"], [string, string]> = {
+  COMPLETED: ["rgba(107,124,69,0.14)", "#4a5e28"],
+  PENDING: ["rgba(196,122,58,0.14)", "#8a4a10"],
+  FAILED: ["rgba(192,85,42,0.14)", "#7a2010"],
+  RESTORED: ["rgba(180,155,110,0.14)", "#6b5d4a"],
 };
 
 function formatSize(bytes?: number | null) {
@@ -29,99 +27,132 @@ function formatSize(bytes?: number | null) {
   return `${(kb / 1024).toFixed(2)} MB`;
 }
 
+const S = {
+  card: { background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" } as React.CSSProperties,
+  cardHeader: { background: "#2c2820", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" } as React.CSSProperties,
+  cardHeaderText: { fontSize: 14, fontWeight: 700, color: "rgba(245,240,230,0.92)" } as React.CSSProperties,
+  cardHeaderSub: { fontSize: 11, color: "rgba(180,155,110,0.75)", marginTop: 2 } as React.CSSProperties,
+  th: { padding: "10px 14px", fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", color: "rgba(220,205,180,0.85)", whiteSpace: "nowrap" as const, background: "#2c2820" } as React.CSSProperties,
+  td: { padding: "12px 14px", fontSize: 13, color: "#2c2418", borderBottom: "1px solid rgba(180,155,110,0.10)" } as React.CSSProperties,
+  olive: { background: "linear-gradient(135deg, #6b7c45, #8fa05a)", color: "#fff", border: "none", borderRadius: 9, padding: "9px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 } as React.CSSProperties,
+  ghost: { display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 14px", borderRadius: 9, border: "1px solid rgba(180,155,110,0.30)", background: "rgba(250,247,242,0.7)", color: "#6b5d4a", fontSize: 13, fontWeight: 600, cursor: "pointer" } as React.CSSProperties,
+  badge: (bg: string, c: string): React.CSSProperties => ({ display: "inline-flex", padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: bg, color: c }),
+};
+
 export default function BackupPage() {
   const [restoreOpen, setRestoreOpen] = useState(false);
   const { data: backups, isLoading, refetch, isFetching } = useBackups();
   const createBackup = useCreateBackup();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Header */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
         <div>
-          <h1 className="text-2xl font-semibold">Backup Center</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418" }}>Backup Center</h1>
+          <p style={{ fontSize: 13, color: "#a8937a", marginTop: 5, fontWeight: 500 }}>
             Download full database backups or restore from a previous backup ZIP
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setRestoreOpen(true)}>
-            <RotateCcw className="h-4 w-4 mr-1" />
+        <div style={{ display: "flex", gap: 8 }}>
+          <button style={S.ghost} onClick={() => setRestoreOpen(true)}>
+            <RotateCcw style={{ width: 15, height: 15 }} />
             Restore Backup
-          </Button>
-          <Button onClick={() => createBackup.mutate()} disabled={createBackup.isPending}>
-            <DatabaseBackup className="h-4 w-4 mr-1" />
+          </button>
+          <button style={{ ...S.olive, opacity: createBackup.isPending ? 0.7 : 1 }}
+            onClick={() => createBackup.mutate()} disabled={createBackup.isPending}>
+            <DatabaseBackup style={{ width: 15, height: 15 }} />
             {createBackup.isPending ? "Creating..." : "Download Full Backup"}
-          </Button>
+          </button>
         </div>
       </div>
 
-      <Card className="bg-slate-50 border-dashed">
-        <CardContent className="p-4 text-sm text-muted-foreground space-y-1">
-          <p className="font-medium text-foreground">What's included in a backup?</p>
-          <p>
-            Products, customers, suppliers, invoices, estimates, credit records, purchases, stock movements,
-            expenses, settings, and users (passwords excluded). Backups are named{" "}
-            <span className="font-mono">SS_Traders_Backup_YYYY_MM_DD.zip</span>.
-          </p>
-          <p>Daily backups run automatically at 2:00 AM, and weekly backups every Sunday at 3:00 AM.</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Backup History</CardTitle>
-            <CardDescription>Recent manual, daily, and weekly backups</CardDescription>
+      {/* Info card */}
+      <div style={{ ...S.card, borderStyle: "dashed" }}>
+        <div style={{ padding: "16px 18px", display: "flex", gap: 14 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 11, background: "rgba(107,124,69,0.12)", color: "#6b7c45", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <ShieldCheck style={{ width: 20, height: 20 }} />
           </div>
-          <Button variant="ghost" size="icon" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-          </Button>
-        </CardHeader>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase text-muted-foreground">
+          <div style={{ fontSize: 13, color: "#6b5d4a", lineHeight: 1.7 }}>
+            <p style={{ fontWeight: 700, color: "#2c2418", marginBottom: 4 }}>What's included in a backup?</p>
+            <p>
+              Products, customers, suppliers, invoices, estimates, credit records, purchases, stock movements,
+              expenses, settings, and users (passwords excluded). Backups are named{" "}
+              <span style={{ fontFamily: "monospace", fontSize: 12, background: "rgba(180,155,110,0.12)", padding: "2px 6px", borderRadius: 4 }}>SS_Traders_Backup_YYYY_MM_DD.zip</span>.
+            </p>
+            <p style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, color: "#a8937a" }}>
+              <Clock style={{ width: 13, height: 13 }} />
+              Daily backups run automatically at 2:00 AM, and weekly backups every Sunday at 3:00 AM.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Backup History */}
+      <div style={S.card}>
+        <div style={S.cardHeader}>
+          <div>
+            <p style={S.cardHeaderText}>Backup History</p>
+            <p style={S.cardHeaderSub}>Recent manual, daily, and weekly backups</p>
+          </div>
+          <button
+            onClick={() => refetch()} disabled={isFetching}
+            style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid rgba(180,155,110,0.3)", background: "rgba(250,247,242,0.5)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(220,205,180,0.85)" }}>
+            <RefreshCw style={{ width: 14, height: 14, animation: isFetching ? "spin 1s linear infinite" : "none" }} />
+          </button>
+        </div>
+        <div style={{ padding: 0 }}>
+          <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">File Name</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Size</th>
-                <th className="px-4 py-3">Created</th>
-                <th className="px-4 py-3">By</th>
-                <th className="px-4 py-3"></th>
+                <th style={{ ...S.th, textAlign: "left" }}>File Name</th>
+                <th style={{ ...S.th, textAlign: "left" }}>Type</th>
+                <th style={{ ...S.th, textAlign: "left" }}>Status</th>
+                <th style={{ ...S.th, textAlign: "right" }}>Size</th>
+                <th style={{ ...S.th, textAlign: "left" }}>Created</th>
+                <th style={{ ...S.th, textAlign: "left" }}>By</th>
+                <th style={{ ...S.th, textAlign: "right" }}></th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading...
-                  </td>
+                  <td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "32px 14px", color: "#a8937a" }}>Loading...</td>
                 </tr>
               ) : !backups || backups.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "32px 14px", color: "#a8937a" }}>
                     No backups yet. Click "Download Full Backup" to create one.
                   </td>
                 </tr>
               ) : (
                 backups.map((b) => (
-                  <tr key={b.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-mono text-xs">{b.fileName}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={TYPE_VARIANT[b.type]}>{b.type}</Badge>
+                  <tr key={b.id} style={{ transition: "background 0.15s" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,155,110,0.06)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                    <td style={{ ...S.td, fontFamily: "monospace", fontSize: 12 }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <HardDrive style={{ width: 14, height: 14, color: "#a8937a", flexShrink: 0 }} />
+                        {b.fileName}
+                      </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={STATUS_VARIANT[b.status]}>{b.status}</Badge>
+                    <td style={S.td}>
+                      <span style={S.badge(...TYPE_COLORS[b.type])}>{b.type}</span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatSize(b.sizeBytes)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(b.createdAt)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{b.createdBy?.name || "System"}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td style={S.td}>
+                      <span style={S.badge(...STATUS_COLORS[b.status])}>{b.status}</span>
+                    </td>
+                    <td style={{ ...S.td, textAlign: "right", color: "#c47a3a", fontFamily: "Georgia, serif", fontWeight: 700 }}>
+                      {formatSize(b.sizeBytes)}
+                    </td>
+                    <td style={{ ...S.td, color: "#a8937a" }}>{formatDate(b.createdAt)}</td>
+                    <td style={{ ...S.td, color: "#a8937a" }}>{b.createdBy?.name || "System"}</td>
+                    <td style={{ ...S.td, textAlign: "right" }}>
                       {b.status === "COMPLETED" && (
-                        <Button size="sm" variant="ghost" onClick={() => downloadBackup(b)}>
-                          <Download className="h-3.5 w-3.5 mr-1" />
+                        <button style={S.ghost} onClick={() => downloadBackup(b)}>
+                          <Download style={{ width: 14, height: 14 }} />
                           Download
-                        </Button>
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -129,10 +160,12 @@ export default function BackupPage() {
               )}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <RestoreBackupDialog open={restoreOpen} onOpenChange={setRestoreOpen} />
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
