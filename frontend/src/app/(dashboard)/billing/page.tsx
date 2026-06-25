@@ -299,8 +299,8 @@ export default function BillingPage() {
           {/* Search bar */}
           <div style={S.card}>
             <div style={{ padding: "12px 16px" }}>
-              <div style={{ display: "flex", gap: 10 }}>
-                <div style={{ position: "relative", flex: 1 }}>
+              <div className="billing-search-row" style={{ display: "flex", gap: 10 }}>
+                <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
                   <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#a8937a", pointerEvents: "none" }} />
                   <input
                     style={{ ...S.liveInput, paddingLeft: 36 }}
@@ -563,7 +563,7 @@ export default function BillingPage() {
             </div>
             <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
               {/* Payment method pills */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6 }}>
+              <div className="billing-payment-pills" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6 }}>
                 {PAYMENT_METHODS.map((m) => {
                   const active = paymentMethod === m;
                   return (

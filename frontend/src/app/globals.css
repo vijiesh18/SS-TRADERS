@@ -386,6 +386,11 @@ input[type="number"], input[type="search"], select, textarea {
   .billing-header-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
   .billing-main-grid { grid-template-columns: 1fr !important; }
   .billing-main-grid table { min-width: 520px !important; }
+  .billing-main-grid > div { max-width: 100%; min-width: 0; }
+  .billing-search-row { flex-wrap: wrap !important; }
+  .billing-search-row > button { flex: 1 !important; white-space: nowrap; }
+  .billing-payment-pills { grid-template-columns: repeat(4, 1fr) !important; gap: 5px !important; }
+  .billing-payment-pills button { padding: 7px 2px !important; font-size: 10px !important; }
 
   /* Page titles smaller on mobile */
   h1[style*="fontSize"] { font-size: 20px !important; }
