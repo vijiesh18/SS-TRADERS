@@ -2,6 +2,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { AppFooter } from "@/components/layout/app-footer";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export default function DashboardGroupLayout({ children }: { children: React.Rea
         </div>
         {/* Fixed floating footer — outside scroll container */}
         <AppFooter />
+        <MobileNav />
       </div>
     </AuthGuard>
   );
