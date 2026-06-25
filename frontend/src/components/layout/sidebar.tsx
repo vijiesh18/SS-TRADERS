@@ -122,7 +122,7 @@ export function Sidebar() {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex:1, padding:"6px 0", overflowY:"auto" }}>
+        <nav style={{ flex:1, padding:"6px 0", overflowY:"auto", WebkitOverflowScrolling:"touch", minHeight:0 }}>
           {NAV_GROUPS.map((group) => {
             const visible = group.items.filter(
               (it) => !it.permission || hasPermission(it.permission)
