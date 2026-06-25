@@ -53,7 +53,7 @@ export function TopBar() {
   return (
     <>
     {isDemo && (
-      <div style={{
+      <div className="demo-banner" style={{
         background: "linear-gradient(135deg, #c47a3a, #e8a45a)", color: "#fff",
         textAlign: "center", padding: "6px 12px", fontSize: 12, fontWeight: 700,
         letterSpacing: "0.5px", zIndex: 41, position: "sticky", top: 0,
