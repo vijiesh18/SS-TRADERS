@@ -450,19 +450,22 @@ export default function CreditPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
         {[
-          { label: "Total Pending", value: formatCurrency(Number(summary?.totalPending || 0) + totalPendingBalance), icon: CreditCard, color: "text-blue-500 bg-blue-50" },
-          { label: "Pending Bills", value: String((summary?.pendingCount || 0) + pendingInvoices.length), icon: AlertCircle, color: "text-amber-500 bg-amber-50" },
-          { label: "Due Today", value: String(summary?.dueTodayCount || 0), icon: Calendar, color: "text-orange-500 bg-orange-50" },
-          { label: "Overdue", value: String(summary?.overdueCount || 0), icon: AlertCircle, color: "text-red-500 bg-red-50" },
+          { label: "Total Pending", value: formatCurrency(Number(summary?.totalPending || 0) + totalPendingBalance), icon: CreditCard, ic: "#6b7c45", ibg: "rgba(107,124,69,0.12)" },
+          { label: "Pending Bills", value: String((summary?.pendingCount || 0) + pendingInvoices.length), icon: AlertCircle, ic: "#c47a3a", ibg: "rgba(196,122,58,0.12)" },
+          { label: "Due Today", value: String(summary?.dueTodayCount || 0), icon: Calendar, ic: "#8a4a10", ibg: "rgba(196,122,58,0.12)" },
+          { label: "Overdue", value: String(summary?.overdueCount || 0), icon: AlertCircle, ic: "#c0552a", ibg: "rgba(192,85,42,0.12)" },
         ].map((s) => (
-          <Card key={s.label}><CardContent className="p-4 flex items-center gap-3">
-            <div className={`rounded-xl p-2.5 ${s.color.split(" ")[1]}`}>
-              <s.icon className={`h-5 w-5 ${s.color.split(" ")[0]}`} />
+          <div key={s.label} style={{ background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, padding: "16px 18px", boxShadow: "0 4px 20px rgba(100,80,40,0.07)", display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 11, background: s.ibg, color: s.ic, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <s.icon className="h-5 w-5" />
             </div>
-            <div><p className="text-xs text-muted-foreground">{s.label}</p><p className="text-xl font-bold">{s.value}</p></div>
-          </CardContent></Card>
+            <div>
+              <p style={{ fontSize: 12, color: "#a8937a", fontWeight: 600 }}>{s.label}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, fontFamily: "Georgia, serif", color: "#6b7c45", marginTop: 2 }}>{s.value}</p>
+            </div>
+          </div>
         ))}
       </div>
 
