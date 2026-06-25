@@ -485,82 +485,78 @@ export default function CreditPage() {
       </div>
 
       {/* Named Customer Credit Records */}
-      <Card>
+      <div style={{ background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" }}>
         <div style={{ background: "#2c2820", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Credit Records — Named Customers</p>
           <p style={{ fontSize: 11, color: "rgba(180,155,110,0.75)" }}>Click any row to see payment history ↓</p>
         </div>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
-              <tr>
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Invoice</th>
-                <th className="px-4 py-3 text-right">Total Bill</th>
-                <th className="px-4 py-3 text-right">Paid</th>
-                <th className="px-4 py-3 text-right">Balance Due</th>
-                <th className="px-4 py-3">Payments</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {isLoading ? (
-                <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">Loading...</td></tr>
-              ) : records.length === 0 ? (
-                <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">
-                  {search ? `No customers matching "${search}"` : "No pending credit records. Select a customer when doing a credit sale to track it here."}
-                </td></tr>
-              ) : (
-                records.map((r) => <CreditRow key={r.id} record={r} />)
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+        <table className="w-full text-sm">
+          <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
+            <tr>
+              <th className="px-4 py-3">Customer</th>
+              <th className="px-4 py-3">Invoice</th>
+              <th className="px-4 py-3 text-right">Total Bill</th>
+              <th className="px-4 py-3 text-right">Paid</th>
+              <th className="px-4 py-3 text-right">Balance Due</th>
+              <th className="px-4 py-3">Payments</th>
+              <th className="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {isLoading ? (
+              <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">Loading...</td></tr>
+            ) : records.length === 0 ? (
+              <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">
+                {search ? `No customers matching "${search}"` : "No pending credit records. Select a customer when doing a credit sale to track it here."}
+              </td></tr>
+            ) : (
+              records.map((r) => <CreditRow key={r.id} record={r} />)
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Walk-in Pending Invoices */}
       {pendingInvoices.length > 0 && (
-        <Card>
+        <div style={{ background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" }}>
           <div style={{ background: "#2c2820", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Partial / Unpaid Bills — Walk-in</p>
               <p style={{ fontSize: 11, color: "rgba(196,122,58,0.85)" }}>Link to a customer to enable installment payment tracking.</p>
             </div>
           </div>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
-                <tr>
-                  <th className="px-4 py-3">Invoice</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3 text-right">Total</th>
-                  <th className="px-4 py-3 text-right">Paid</th>
-                  <th className="px-4 py-3 text-right">Balance Due</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3"></th>
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
+              <tr>
+                <th className="px-4 py-3">Invoice</th>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3 text-right">Total</th>
+                <th className="px-4 py-3 text-right">Paid</th>
+                <th className="px-4 py-3 text-right">Balance Due</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {pendingInvoices.map((inv) => (
+                <tr key={inv.id} className="hover:bg-amber-50/50 cursor-pointer" onClick={() => setPreviewId(inv.id)}>
+                  <td className="px-4 py-3 font-medium text-indigo-600">{inv.invoiceNumber}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{formatDate(inv.createdAt)}</td>
+                  <td className="px-4 py-3 text-right">{formatCurrency(Number(inv.grandTotal))}</td>
+                  <td className="px-4 py-3 text-right text-emerald-600 font-medium">{formatCurrency(Number(inv.paidAmount))}</td>
+                  <td className="px-4 py-3 text-right text-red-600 font-bold">{formatCurrency(Number(inv.pendingAmount))}</td>
+                  <td className="px-4 py-3"><Badge variant={inv.status === "UNPAID" ? "destructive" : "warning"}>{inv.status}</Badge></td>
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1"
+                      onClick={() => setLinkInvoice(inv)}>
+                      <UserPlus className="h-3 w-3" /> Link Customer
+                    </Button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y">
-                {pendingInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-amber-50/50 cursor-pointer" onClick={() => setPreviewId(inv.id)}>
-                    <td className="px-4 py-3 font-medium text-indigo-600">{inv.invoiceNumber}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(inv.createdAt)}</td>
-                    <td className="px-4 py-3 text-right">{formatCurrency(Number(inv.grandTotal))}</td>
-                    <td className="px-4 py-3 text-right text-emerald-600 font-medium">{formatCurrency(Number(inv.paidAmount))}</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-bold">{formatCurrency(Number(inv.pendingAmount))}</td>
-                    <td className="px-4 py-3"><Badge variant={inv.status === "UNPAID" ? "destructive" : "warning"}>{inv.status}</Badge></td>
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1"
-                        onClick={() => setLinkInvoice(inv)}>
-                        <UserPlus className="h-3 w-3" /> Link Customer
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {previewId && <InvoicePreviewModal invoiceId={previewId} onClose={() => setPreviewId(null)} />}
