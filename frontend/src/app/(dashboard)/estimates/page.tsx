@@ -6,6 +6,7 @@ import { NewEstimateDialog } from "@/components/estimates/new-estimate-dialog";
 import { ConvertEstimateDialog } from "@/components/estimates/convert-estimate-dialog";
 import { useEstimates, printEstimatePdf, downloadEstimatePdf, type Estimate } from "@/hooks/use-estimates";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ShimmerTable } from "@/components/ui/shimmer";
 
 const STATUS_BADGE: Record<Estimate["status"], [string, string]> = {
   DRAFT: ["rgba(180,155,110,0.14)", "#6b5d4a"],
@@ -95,7 +96,7 @@ export default function EstimatesPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading estimates...</td></tr>
+                <ShimmerTable rows={4} cols={6} />
               ) : !estimates || estimates.length === 0 ? (
                 <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>

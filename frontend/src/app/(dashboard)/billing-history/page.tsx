@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { DateRangeFilter } from "@/components/reports/date-range-filter";
 import { useInvoices, useCancelInvoice, useBulkCancelInvoices, printInvoicePdfById, downloadInvoicePdfById } from "@/hooks/use-billing";
+import { ShimmerTable } from "@/components/ui/shimmer";
 import { useAuthStore } from "@/store/auth-store";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -137,7 +138,7 @@ export default function BillingHistoryPage() {
           <span style={S.cardHeaderText}>Invoice History</span>
         </div>
         {isLoading ? (
-          <p style={{ padding: "40px", textAlign: "center", fontSize: 13, color: "#a8937a" }}>Loading...</p>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}><tbody><ShimmerTable rows={5} cols={7} /></tbody></table>
         ) : !data || data.items.length === 0 ? (
           <div style={{ padding: "48px", textAlign: "center", color: "#a8937a" }}>
             <Receipt size={28} style={{ margin: "0 auto 8px", color: "rgba(180,155,110,0.5)" }} />

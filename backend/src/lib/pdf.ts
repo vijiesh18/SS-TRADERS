@@ -455,3 +455,103 @@ export async function generateInvoicePDF(res: Response, invoice: InvoicePdfData)
 
   doc.end();
 }
+
+/**
+ * Generates a compact thermal receipt PDF (80mm width).
+ */
+export function generateThermalReceipt(res: Response, invoice: InvoicePdfData) {
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `inline; filename="receipt-${invoice.invoiceNumber}.pdf"`);
+
+  const width = 226; // 80mm in points
+  const doc = new PDFDocument({ size: [width, 800], margin: 10, bufferPages: true });
+  doc.pipe(res);
+
+  const cw = width - 20; // content width
+  const left = 10;
+
+  const line = (y?: number) => {
+    const ly = y ?? doc.y;
+    doc.moveTo(left, ly).lineTo(left + cw, ly).dash(2, { space: 2 }).stroke("gray").undash();
+    doc.moveDown(0.3);
+  };
+
+  // Header
+  doc.font("Helvetica-Bold").fontSize(12).text(BUSINESS_NAME, left, 10, { width: cw, align: "center" });
+  doc.font("Helvetica").fontSize(7).text(`GSTIN: ${BUSINESS_GSTIN}`, { width: cw, align: "center" });
+  doc.text(`Ph: ${BUSINESS_PHONE}`, { width: cw, align: "center" });
+  doc.moveDown(0.3);
+  line();
+
+  // Invoice details
+  doc.font("Helvetica-Bold").fontSize(8).text(`Invoice: ${invoice.invoiceNumber}`, left, doc.y, { width: cw });
+  doc.font("Helvetica").fontSize(7);
+  doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`, { width: cw });
+  if (invoice.customer) {
+    doc.text(`Customer: ${invoice.customer.name}`, { width: cw });
+    if (invoice.customer.phone) doc.text(`Phone: ${invoice.customer.phone}`, { width: cw });
+  }
+  doc.text(`Payment: ${invoice.paymentMethod}`, { width: cw });
+  doc.moveDown(0.2);
+  line();
+
+  // Column headers
+  doc.font("Helvetica-Bold").fontSize(7);
+  const colX = [left, left + 90, left + 120, left + 160];
+  doc.text("ITEM", colX[0], doc.y, { width: 85 });
+  doc.text("QTY", colX[1], doc.y - 9, { width: 28, align: "right" });
+  doc.text("RATE", colX[2], doc.y - 9, { width: 38, align: "right" });
+  doc.text("AMT", colX[3], doc.y - 9, { width: cw - 160, align: "right" });
+  doc.moveDown(0.2);
+  line();
+
+  // Items
+  doc.font("Helvetica").fontSize(7);
+  for (const item of invoice.items) {
+    const name = item.productName.length > 20 ? item.productName.substring(0, 20) + "…" : item.productName;
+    const y = doc.y;
+    doc.text(name, colX[0], y, { width: 85 });
+    doc.text(String(item.quantity), colX[1], y, { width: 28, align: "right" });
+    doc.text(item.rate.toFixed(2), colX[2], y, { width: 38, align: "right" });
+    doc.text(item.totalAmount.toFixed(2), colX[3], y, { width: cw - 160, align: "right" });
+    doc.moveDown(0.15);
+  }
+  line();
+
+  // Totals
+  doc.font("Helvetica").fontSize(7);
+  const totRow = (label: string, val: string, bold = false) => {
+    if (bold) doc.font("Helvetica-Bold").fontSize(9);
+    else doc.font("Helvetica").fontSize(7);
+    const y = doc.y;
+    doc.text(label, left, y, { width: 120 });
+    doc.text(val, left + 120, y, { width: cw - 120, align: "right" });
+    doc.moveDown(0.15);
+  };
+
+  totRow("Sub Total", `₹${invoice.subTotal.toFixed(2)}`);
+  if (invoice.discountAmount > 0) totRow("Discount", `-₹${invoice.discountAmount.toFixed(2)}`);
+  totRow("CGST", `₹${invoice.cgstAmount.toFixed(2)}`);
+  totRow("SGST", `₹${invoice.sgstAmount.toFixed(2)}`);
+  line();
+  totRow("GRAND TOTAL", `₹${invoice.grandTotal.toFixed(2)}`, true);
+  doc.moveDown(0.1);
+
+  if (invoice.pendingAmount > 0) {
+    totRow("Paid", `₹${invoice.paidAmount.toFixed(2)}`);
+    totRow("Balance Due", `₹${invoice.pendingAmount.toFixed(2)}`);
+  }
+  line();
+
+  // Footer
+  doc.font("Helvetica").fontSize(7).text(INVOICE_FOOTER_TEXT, left, doc.y, { width: cw, align: "center" });
+
+  // Trim page height to content
+  const pages = doc.bufferedPageRange();
+  if (pages.count === 1) {
+    const finalHeight = doc.y + 20;
+    doc.page.height = finalHeight;
+  }
+
+  doc.end();
+}

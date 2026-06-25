@@ -7,6 +7,7 @@ import { DateRangeFilter } from "@/components/reports/date-range-filter";
 import { ExpenseFormDialog } from "@/components/expenses/expense-form-dialog";
 import { useExpenses, useDeleteExpense, EXPENSE_CATEGORIES } from "@/hooks/use-expenses";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ShimmerTable } from "@/components/ui/shimmer";
 
 function defaultFrom() {
   const d = new Date();
@@ -136,7 +137,7 @@ export default function ExpensesPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading expenses...</td></tr>
+                <ShimmerTable rows={4} cols={5} />
               ) : !data || data.items.length === 0 ? (
                 <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>No expenses recorded for this period.</td></tr>
               ) : (

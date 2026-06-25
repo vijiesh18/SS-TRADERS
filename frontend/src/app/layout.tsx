@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { ServiceWorkerRegister } from "@/components/sw-register";
 
 export const metadata: Metadata = {
   title: "S.S Traders Smart POS",
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <QueryProvider>{children}</QueryProvider>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

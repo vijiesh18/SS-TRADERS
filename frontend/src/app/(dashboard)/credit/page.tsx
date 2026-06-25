@@ -8,6 +8,7 @@ import {
 } from "@/hooks/use-credit";
 import { useInvoice, printInvoicePdfById, downloadInvoicePdfById } from "@/hooks/use-billing";
 import { useCustomerSearch } from "@/hooks/use-billing";
+import { ShimmerTable } from "@/components/ui/shimmer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +31,7 @@ function InvoicePreviewModal({ invoiceId, onClose }: { invoiceId: string; onClos
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-indigo-100 p-2"><Receipt className="h-5 w-5 text-indigo-600" /></div>
             <div>
-              <p className="font-bold text-slate-900">{invoice?.invoiceNumber || "Loading..."}</p>
+              <p className="font-bold text-slate-900">{invoice?.invoiceNumber || <span className="shimmer-block" style={{ display: "inline-block", width: 100, height: 14, borderRadius: 6 }} />}</p>
               <p className="text-xs text-muted-foreground">{invoice ? formatDate(invoice.createdAt) : ""}</p>
             </div>
           </div>
@@ -508,7 +509,7 @@ export default function CreditPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={7} style={{ padding: "40px 20px", textAlign: "center", color: "#a8937a", fontSize: 13 }}>Loading...</td></tr>
+              <ShimmerTable rows={5} cols={7} />
             ) : records.length === 0 ? (
               <tr><td colSpan={7} style={{ padding: "48px 20px", textAlign: "center" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>

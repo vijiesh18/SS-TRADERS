@@ -5,6 +5,7 @@ import { Plus, Search, BookOpen, Pencil, Users } from "lucide-react";
 import { CustomerFormDialog } from "@/components/customers/customer-form-dialog";
 import { CustomerLedgerDialog } from "@/components/customers/customer-ledger-dialog";
 import { useCustomers, type Customer } from "@/hooks/use-customers";
+import { ShimmerTable } from "@/components/ui/shimmer";
 
 const S = {
   page: { display: "flex", flexDirection: "column", gap: 16 } as React.CSSProperties,
@@ -93,7 +94,7 @@ export default function CustomersPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading customers...</td></tr>
+                <ShimmerTable rows={4} cols={4} />
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>No customers found.</td></tr>
               ) : (

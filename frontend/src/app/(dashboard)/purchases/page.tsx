@@ -5,6 +5,7 @@ import { Plus, Package } from "lucide-react";
 import { NewPurchaseDialog } from "@/components/purchases/new-purchase-dialog";
 import { usePurchases } from "@/hooks/use-purchases";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ShimmerTable } from "@/components/ui/shimmer";
 
 const S = {
   page: { display: "flex", flexDirection: "column", gap: 16 } as React.CSSProperties,
@@ -59,7 +60,7 @@ export default function PurchasesPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading purchases...</td></tr>
+                <ShimmerTable rows={4} cols={5} />
               ) : !data || data.items.length === 0 ? (
                 <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>

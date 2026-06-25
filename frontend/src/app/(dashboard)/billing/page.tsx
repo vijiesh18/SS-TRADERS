@@ -643,9 +643,10 @@ export default function BillingPage() {
                       {lastInvoice.invoiceNumber} created!
                     </span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginBottom: 8 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6, marginBottom: 8 }}>
                     {[
                       { label: "Print", icon: <Printer size={12} />, action: () => printInvoicePdf(lastInvoice.id) },
+                      { label: "Receipt", icon: <Receipt size={12} />, action: () => { window.open(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/billing/invoices/${lastInvoice.id}/receipt`, "_blank"); } },
                       { label: "PDF", icon: <FileDown size={12} />, action: () => downloadInvoicePdf(lastInvoice.id) },
                     ].map(({ label, icon, action }) => (
                       <button key={label} onClick={action}

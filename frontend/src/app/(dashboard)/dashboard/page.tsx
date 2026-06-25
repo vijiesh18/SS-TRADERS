@@ -333,7 +333,12 @@ export default function DashboardPage() {
             {chartsLoading
               ? <div className="shimmer" style={{ height:"100%", borderRadius:8 }} />
               : !charts?.revenueTrend?.length
-                ? <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:"#a8937a", fontSize:13 }}>No data yet.</div>
+                ? <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:8 }}>
+                    <div style={{ width:40, height:40, borderRadius:12, background:"rgba(180,155,110,0.10)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <TrendingUp size={18} style={{ color:"#c0a882" }} />
+                    </div>
+                    <span style={{ fontSize:12, color:"#a8937a" }}>Start billing to see insights here</span>
+                  </div>
                 : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={charts.revenueTrend} margin={{ top:5, right:5, bottom:0, left:0 }}>
@@ -378,7 +383,12 @@ export default function DashboardPage() {
                   <div className="shimmer" style={{ width:140, height:140, borderRadius:"50%" }} />
                 </div>
               : !charts?.categoryPerformance?.length
-                ? <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:"#a8937a", fontSize:13 }}>No data yet.</div>
+                ? <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:8 }}>
+                    <div style={{ width:40, height:40, borderRadius:12, background:"rgba(180,155,110,0.10)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <TrendingUp size={18} style={{ color:"#c0a882" }} />
+                    </div>
+                    <span style={{ fontSize:12, color:"#a8937a" }}>Start billing to see insights here</span>
+                  </div>
                 : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -421,7 +431,12 @@ export default function DashboardPage() {
                 ))}
               </div>
             : !charts?.productPerformance?.length
-              ? <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:"#a8937a", fontSize:13 }}>No sales data yet.</div>
+              ? <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:8 }}>
+                    <div style={{ width:40, height:40, borderRadius:12, background:"rgba(180,155,110,0.10)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <ShoppingCart size={18} style={{ color:"#c0a882" }} />
+                    </div>
+                    <span style={{ fontSize:12, color:"#a8937a" }}>Start billing to see top products</span>
+                  </div>
               : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={charts.productPerformance} layout="vertical" margin={{ left:8, right:16, top:4, bottom:4 }}>

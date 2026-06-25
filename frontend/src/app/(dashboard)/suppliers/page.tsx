@@ -6,6 +6,7 @@ import { SupplierFormDialog } from "@/components/suppliers/supplier-form-dialog"
 import { SupplierHistoryDialog } from "@/components/suppliers/supplier-history-dialog";
 import { useSuppliers, type Supplier } from "@/hooks/use-suppliers";
 import { formatCurrency } from "@/lib/utils";
+import { ShimmerTable } from "@/components/ui/shimmer";
 
 const S = {
   page: { display: "flex", flexDirection: "column", gap: 16 } as React.CSSProperties,
@@ -83,7 +84,7 @@ export default function SuppliersPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading suppliers...</td></tr>
+                <ShimmerTable rows={4} cols={4} />
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>No suppliers found.</td></tr>
               ) : (

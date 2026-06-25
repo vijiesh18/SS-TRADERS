@@ -8,6 +8,7 @@ import { AccessDenied } from "@/components/access-denied";
 import { useAuditLogs, AUDIT_ACTIONS } from "@/hooks/use-audit-logs";
 import { useAuthStore } from "@/store/auth-store";
 import { formatDate } from "@/lib/utils";
+import { ShimmerTable } from "@/components/ui/shimmer";
 
 const ACTION_BADGE: Record<string, [string, string]> = {
   LOGIN: ["rgba(107,124,69,0.14)", "#4a5e28"],
@@ -104,7 +105,7 @@ export default function AuditLogsPage() {
           <span style={S.cardHeaderText}>Activity History</span>
         </div>
         {isLoading ? (
-          <p style={{ padding: "40px", textAlign: "center", fontSize: 13, color: "#a8937a" }}>Loading...</p>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}><tbody><ShimmerTable rows={5} cols={5} /></tbody></table>
         ) : !data || data.items.length === 0 ? (
           <div style={{ padding: "48px", textAlign: "center", color: "#a8937a" }}>
             <ScrollText size={28} style={{ margin: "0 auto 8px", color: "rgba(180,155,110,0.5)" }} />

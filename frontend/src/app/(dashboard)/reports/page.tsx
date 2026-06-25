@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TrendingUp, IndianRupee, Receipt, Boxes, Users, Wallet, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { ShimmerRow } from "@/components/ui/shimmer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DateRangeFilter } from "@/components/reports/date-range-filter";
 import { ExportButtons } from "@/components/reports/export-buttons";
@@ -73,7 +74,7 @@ function EmptyRow({ cols, text }: { cols: number; text: string }) {
 }
 
 function LoadingRow({ cols }: { cols: number }) {
-  return <EmptyRow cols={cols} text="Loading..." />;
+  return <ShimmerRow cols={cols} />;
 }
 
 function StatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
@@ -243,7 +244,7 @@ export default function ReportsPage() {
             {/* Summary banner */}
             <SectionCard title="GSTR-1 Filing Report" subtitle="B2B, B2C and HSN summary ready for your GST return filing" exportBtn={<ExportButtons isPending={downloadReport.isPending} onDownload={(f) => download("gstr1", f)} />}>
               {gstr1.isLoading ? (
-                <p style={{ fontSize: 13, color: "#a8937a" }}>Loading...</p>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}><tbody><ShimmerRow cols={5} /></tbody></table>
               ) : gstr1.data ? (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
                   {[

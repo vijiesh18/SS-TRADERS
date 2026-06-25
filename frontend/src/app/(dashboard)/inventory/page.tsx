@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { StockHistoryDialog } from "@/components/inventory/stock-history-dialog";
+import { ShimmerTable } from "@/components/ui/shimmer";
 import { useLowStock, useDeadStock, useFastMoving, useProducts, useCategories, useCreateProduct, useUpdateProduct, type ProductItem } from "@/hooks/use-inventory";
 import { useStockAdjustment } from "@/hooks/use-inventory";
 import { useAuthStore } from "@/store/auth-store";
@@ -254,7 +255,7 @@ function AllProductsTab({ canEdit }: { canEdit: boolean }) {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>Loading...</td></tr>
+                <ShimmerTable rows={6} cols={6} />
               ) : !data || data.items.length === 0 ? (
                 <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: "40px", color: "#a8937a" }}>{search ? `No products matching "${search}"` : "No products yet. Click Add New Product to get started."}</td></tr>
               ) : (
@@ -350,7 +351,7 @@ export default function InventoryPage() {
               </tr></thead>
               <tbody>
                 {lowStockLoading ? (
-                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>Loading...</td></tr>
+                  <ShimmerTable rows={3} cols={5} />
                 ) : !lowStock || lowStock.length === 0 ? (
                   <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>All products are well stocked.</td></tr>
                 ) : (
@@ -385,7 +386,7 @@ export default function InventoryPage() {
               </tr></thead>
               <tbody>
                 {deadStockLoading ? (
-                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>Loading...</td></tr>
+                  <ShimmerTable rows={3} cols={5} />
                 ) : !deadStock || deadStock.items.length === 0 ? (
                   <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>No dead stock found.</td></tr>
                 ) : (
@@ -420,7 +421,7 @@ export default function InventoryPage() {
               </tr></thead>
               <tbody>
                 {fastMovingLoading ? (
-                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>Loading...</td></tr>
+                  <ShimmerTable rows={3} cols={5} />
                 ) : !fastMoving || fastMoving.items.length === 0 ? (
                   <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: "32px", color: "#a8937a" }}>No sales recorded yet.</td></tr>
                 ) : (

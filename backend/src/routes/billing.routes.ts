@@ -6,7 +6,7 @@ import { authenticate, authorize, type AuthRequest } from "@/middleware/auth";
 import { recordAudit, AUDIT_ACTIONS } from "@/lib/audit";
 import { generateInvoiceNumber } from "@/lib/numbering";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { generateInvoicePDF } from "@/lib/pdf";
+import { generateInvoicePDF, generateThermalReceipt } from "@/lib/pdf";
 
 const router = Router();
 
@@ -473,6 +473,45 @@ router.get("/invoices/:id/pdf", async (req: AuthRequest, res: Response) => {
   if (!invoice) return res.status(404).json({ error: "Invoice not found" });
 
   await generateInvoicePDF(res, {
+    invoiceNumber: invoice.invoiceNumber,
+    createdAt: invoice.createdAt,
+    customer: invoice.customer,
+    items: invoice.items.map((i) => ({
+      productName: i.productName,
+      hsnCode: i.hsnCode,
+      shadeCode: i.shadeCode,
+      quantity: Number(i.quantity),
+      rate: Number(i.rate),
+      gstPercentage: Number(i.gstPercentage),
+      taxableAmount: Number(i.taxableAmount),
+      gstAmount: Number(i.gstAmount),
+      totalAmount: Number(i.totalAmount),
+    })),
+    subTotal: Number(invoice.subTotal),
+    discountAmount: Number(invoice.discountAmount),
+    cgstAmount: Number(invoice.cgstAmount),
+    sgstAmount: Number(invoice.sgstAmount),
+    gstAmount: Number(invoice.gstAmount),
+    grandTotal: Number(invoice.grandTotal),
+    paymentMethod: invoice.paymentMethod,
+    paidAmount: Number(invoice.paidAmount),
+    pendingAmount: Number(invoice.pendingAmount),
+  });
+});
+
+/**
+ * GET /api/billing/invoices/:id/receipt
+ * Generates a compact thermal receipt PDF (80mm width).
+ */
+router.get("/invoices/:id/receipt", async (req: AuthRequest, res: Response) => {
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: req.params.id },
+    include: { customer: true, items: true },
+  });
+
+  if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+
+  generateThermalReceipt(res, {
     invoiceNumber: invoice.invoiceNumber,
     createdAt: invoice.createdAt,
     customer: invoice.customer,
