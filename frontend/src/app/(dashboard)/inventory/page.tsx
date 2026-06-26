@@ -36,20 +36,21 @@ const WARN_BADGE: [string, string] = ["rgba(196,122,58,0.14)", "#8a4a10"];
 const OK_BADGE: [string, string] = ["rgba(180,155,110,0.14)", "#6b5d4a"];
 const SUCCESS_BADGE: [string, string] = ["rgba(107,124,69,0.14)", "#4a5e28"];
 
-// Sensible defaults + hints per product category (matched by name keywords),
-// so the form pre-fills the right unit / HSN once a category is chosen.
+// Sensible defaults + hints per S.S Traders product category (matched by name
+// keywords). The unit is pre-filled (operational only); the HSN is suggested in
+// the hint for the user to confirm, since HSN feeds GST filing.
 function categoryDefaults(name: string): { unit?: string; hsnCode?: string; hint?: string } {
   const n = name.toLowerCase();
-  if (/paint|emulsion|enamel|distemper|primer.*paint/.test(n))
-    return { unit: "LTR", hsnCode: "3209", hint: "Paints are usually sold per litre. Add the shade/pack to the name (e.g. “Royale 20L – Ivory”)." };
-  if (/putty|primer|cement|powder/.test(n))
-    return { unit: "KG", hsnCode: "3214", hint: "Sold by weight — unit set to KG." };
-  if (/thinner|solvent|turpentine/.test(n))
-    return { unit: "LTR", hsnCode: "3814", hint: "Liquids — unit set to litres." };
-  if (/brush|roller|tray|tool|tape|sandpaper/.test(n))
-    return { unit: "PCS", hsnCode: "9603", hint: "Counted items — unit set to pieces." };
-  if (/hardware|fitting|fastener|nail|screw/.test(n))
-    return { unit: "PCS", hint: "Counted items — unit set to pieces." };
+  if (/paint|emulsion|enamel|distemper|primer/.test(n))
+    return { unit: "LTR", hsnCode: "3209", hint: "Paints sell per litre. Add the shade/pack to the name (e.g. “Royale 20L – Ivory”). Confirm the HSN (3208–3210) for this product." };
+  if (/accessor|brush|roller|tray|tape|sandpaper|tool/.test(n))
+    return { unit: "PCS", hsnCode: "9603", hint: "Accessories are counted pieces. Confirm the HSN before saving." };
+  if (/borewell|bore ?well|pipe|casing|riser/.test(n))
+    return { unit: "PCS", hint: "Borewell materials (pipes, casings) sell per piece or length. Enter the matching HSN." };
+  if (/pump|motor|submersible/.test(n))
+    return { unit: "PCS", hsnCode: "8413", hint: "Pumps are counted units. Confirm HSN 8413 applies to this model." };
+  if (/hardware|fitting|fastener|nail|screw|bolt/.test(n))
+    return { unit: "PCS", hint: "Hardware items are counted pieces. Enter the matching HSN." };
   return {};
 }
 
