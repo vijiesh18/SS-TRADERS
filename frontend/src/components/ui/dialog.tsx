@@ -1,97 +1,147 @@
 "use client";
 
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const Dialog = DialogPrimitive.Root;
-const DialogTrigger = DialogPrimitive.Trigger;
-const DialogPortal = DialogPrimitive.Portal;
-const DialogClose = DialogPrimitive.Close;
+/**
+ * Lightweight portal-based modal with the same API as the previous Radix
+ * dialog (Dialog / DialogContent / DialogHeader / DialogTitle / ...).
+ * Renders to document.body so page-level transforms/overflow can't trap it,
+ * and uses the app's warm-beige theme by default.
+ */
 
-const DialogOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={cn("fixed inset-0 z-[79]", className)}
-    style={{ background: "rgba(44,40,32,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
-    {...props}
-  />
-));
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+interface DialogCtx {
+  open: boolean;
+  setOpen: (o: boolean) => void;
+}
+const Ctx = React.createContext<DialogCtx | null>(null);
 
-const DialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-[80] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 p-6 max-h-[90vh] overflow-y-auto",
-        className
-      )}
-      style={{
-        background: "rgba(250,247,242,0.98)",
-        border: "1px solid rgba(180,155,110,0.30)",
-        borderRadius: 18,
-        boxShadow: "0 24px 64px rgba(100,80,40,0.22), inset 0 1px 0 rgba(255,255,255,0.7)",
-      }}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close
-        className="dialog-close"
-        style={{ position: "absolute", right: 16, top: 16 }}
+function useDialogCtx() {
+  const c = React.useContext(Ctx);
+  if (!c) throw new Error("Dialog sub-components must be used within <Dialog>");
+  return c;
+}
+
+interface DialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: React.ReactNode;
+}
+
+function Dialog({ open: controlledOpen, onOpenChange, children }: DialogProps) {
+  const [uncontrolled, setUncontrolled] = React.useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolled;
+  const setOpen = React.useCallback((o: boolean) => {
+    onOpenChange?.(o);
+    if (controlledOpen === undefined) setUncontrolled(o);
+  }, [onOpenChange, controlledOpen]);
+  return <Ctx.Provider value={{ open, setOpen }}>{children}</Ctx.Provider>;
+}
+
+function DialogTrigger({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) {
+  const { setOpen } = useDialogCtx();
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<any>;
+    return React.cloneElement(child, {
+      onClick: (e: any) => { child.props.onClick?.(e); setOpen(true); },
+    });
+  }
+  return <button type="button" onClick={() => setOpen(true)}>{children}</button>;
+}
+
+const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => {
+    const { open, setOpen } = useDialogCtx();
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => setMounted(true), []);
+
+    React.useEffect(() => {
+      if (!open) return;
+      const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+      window.addEventListener("keydown", onKey);
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        window.removeEventListener("keydown", onKey);
+        document.body.style.overflow = prev;
+      };
+    }, [open, setOpen]);
+
+    if (!open || !mounted) return null;
+
+    return createPortal(
+      <div
+        className="dialog-overlay"
+        onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
       >
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-));
-DialogContent.displayName = DialogPrimitive.Content.displayName;
+        <div
+          ref={ref}
+          role="dialog"
+          aria-modal="true"
+          className={cn("dialog-panel max-w-lg", className)}
+          {...props}
+        >
+          {children}
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="dialog-close"
+            style={{ position: "absolute", right: 16, top: 16 }}
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+);
+DialogContent.displayName = "DialogContent";
+
+function DialogClose({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) {
+  const { setOpen } = useDialogCtx();
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<any>;
+    return React.cloneElement(child, {
+      onClick: (e: any) => { child.props.onClick?.(e); setOpen(false); },
+    });
+  }
+  return <button type="button" onClick={() => setOpen(false)}>{children}</button>;
+}
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn("flex flex-col space-y-1 text-left", className)}
-    style={{ paddingBottom: 14, borderBottom: "1px solid rgba(180,155,110,0.18)" }}
+    style={{ paddingBottom: 14, marginBottom: 4, borderBottom: "1px solid rgba(180,155,110,0.18)", paddingRight: 36 }}
     {...props}
   />
 );
 
-const DialogTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn("leading-none", className)}
-    style={{ fontFamily: "Georgia, serif", fontSize: 18, fontWeight: 700, color: "#2c2418", letterSpacing: "-0.3px", lineHeight: 1.2 }}
-    {...props}
-  />
-));
-DialogTitle.displayName = DialogPrimitive.Title.displayName;
+const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h2
+      ref={ref}
+      className={cn("leading-none", className)}
+      style={{ fontFamily: "Georgia, serif", fontSize: 18, fontWeight: 700, color: "#2c2418", letterSpacing: "-0.3px", lineHeight: 1.2 }}
+      {...props}
+    />
+  )
+);
+DialogTitle.displayName = "DialogTitle";
 
-const DialogDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={cn(className)}
-    style={{ fontSize: 12.5, color: "#a8937a" }}
-    {...props}
-  />
-));
-DialogDescription.displayName = DialogPrimitive.Description.displayName;
+const DialogDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, ...props }, ref) => (
+    <p ref={ref} className={cn(className)} style={{ fontSize: 12.5, color: "#a8937a" }} {...props} />
+  )
+);
+DialogDescription.displayName = "DialogDescription";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2", className)} {...props} />
+  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2", className)} style={{ marginTop: 8 }} {...props} />
 );
 
 export {

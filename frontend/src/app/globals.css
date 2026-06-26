@@ -305,6 +305,27 @@ input:focus, select:focus, textarea:focus,
 /* ── Dialogs sit above the sidebar + hamburger (z-60) ── */
 .fixed.inset-0.flex.items-center.justify-center { z-index: 80 !important; }
 
+/* ── Shared portal modal (ui/dialog) ── */
+.dialog-overlay {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  background: rgba(44,40,32,0.55);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  animation: dialogOverlayIn 0.16s ease-out;
+}
+.dialog-panel {
+  position: relative; width: 100%;
+  max-height: 90vh; overflow-y: auto; padding: 24px;
+  background: rgba(250,247,242,0.98);
+  border: 1px solid rgba(180,155,110,0.30);
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(100,80,40,0.22), inset 0 1px 0 rgba(255,255,255,0.7);
+  animation: dialogPanelIn 0.18s cubic-bezier(.34,1,.64,1);
+}
+@keyframes dialogOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dialogPanelIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
 /* Themed close (X) button used across dialogs */
 .dialog-close {
   display: flex; align-items: center; justify-content: center;
@@ -502,26 +523,16 @@ input:focus, select:focus, textarea:focus,
   /* ═══════════════════════════════════════════════
      DIALOGS — full-width on mobile
      ═══════════════════════════════════════════════ */
-  /* Anchor inline (Card-based) dialogs to the top so the keyboard
-     doesn't hide the lower fields while typing */
-  .fixed.inset-0.flex.items-center { align-items: flex-start !important; padding-top: 12px !important; }
-  .fixed.inset-0 > div:not(.sidebar-glass) {
+  /* Anchor all dialogs to the top so the keyboard doesn't hide
+     the lower fields while typing */
+  .fixed.inset-0.flex.items-center,
+  .dialog-overlay { align-items: flex-start !important; padding-top: 12px !important; }
+  .fixed.inset-0 > div:not(.sidebar-glass),
+  .dialog-panel {
     max-width: calc(100vw - 20px) !important; margin: 0 auto !important;
     max-height: calc(100dvh - 24px) !important; overflow-y: auto;
     border-radius: 16px !important;
-  }
-  /* Radix dialogs (Users, Product form) center vertically by default, which
-     hides the lower fields behind the keyboard. Anchor them near the top so
-     the form stays visible above the keyboard while typing. */
-  [role="dialog"][data-state="open"] {
-    top: 10px !important;
-    transform: translateX(-50%) !important;
-    max-width: calc(100vw - 16px) !important;
-    width: calc(100vw - 16px) !important;
-    max-height: calc(100dvh - 20px) !important;
-    overflow-y: auto !important;
     padding: 18px !important;
-    border-radius: 16px !important;
   }
 
   /* ═══════════════════════════════════════════════
