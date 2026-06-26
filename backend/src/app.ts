@@ -26,7 +26,7 @@ export function createApp() {
   app.get("/health", (_req, res) => {
     res.json({
       status: "ok",
-      app: "S.S Traders Smart POS API",
+      app: "S.S Traders Management System API",
       timestamp: new Date().toISOString(),
     });
   });

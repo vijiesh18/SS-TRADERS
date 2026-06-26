@@ -1,7 +1,7 @@
 {
-  "name": "S.S Traders Smart POS",
+  "name": "S.S Traders Management System",
   "short_name": "SS Traders",
-  "description": "Smart Billing, Inventory & Analytics for S.S Traders",
+  "description": "Management System for billing, inventory & analytics — S.S Traders",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#f5f0e8",

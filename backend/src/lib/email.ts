@@ -35,7 +35,7 @@ export async function sendPasswordResetEmail(
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#6b7c45,#8fa05a);padding:32px 40px;text-align:center;">
       <div style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:14px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:24px;">🎨</div>
-      <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px;">S.S Traders Smart POS</div>
+      <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px;">S.S Traders Management System</div>
       <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;letter-spacing:0.5px;">Password Reset Request</div>
     </div>
 
@@ -43,7 +43,7 @@ export async function sendPasswordResetEmail(
     <div style="padding:36px 40px;">
       <p style="font-size:16px;color:#2c2418;margin:0 0 8px;">Hello, <strong>${userName}</strong></p>
       <p style="font-size:14px;color:#6b5d4a;line-height:1.7;margin:0 0 28px;">
-        We received a request to reset your password for your S.S Traders Smart POS account.
+        We received a request to reset your password for your S.S Traders Management System account.
         Click the button below to set a new password. This link expires in <strong>1 hour</strong>.
       </p>
 
@@ -60,7 +60,7 @@ export async function sendPasswordResetEmail(
       <div style="border-top:1px solid rgba(180,155,110,0.25);padding-top:20px;">
         <p style="font-size:12px;color:#a8937a;margin:0;line-height:1.6;">
           If you did not request this, you can safely ignore this email — your password will remain unchanged.<br><br>
-          <strong style="color:#6b5d4a;">S.S Traders Smart POS</strong> · Nagercoil, Tamil Nadu<br>
+          <strong style="color:#6b5d4a;">S.S Traders Management System</strong> · Nagercoil, Tamil Nadu<br>
           GSTIN: 33NQAPS4337D1ZS
         </p>
       </div>
@@ -68,16 +68,16 @@ export async function sendPasswordResetEmail(
 
     <!-- Footer -->
     <div style="background:rgba(180,155,110,0.10);padding:16px 40px;text-align:center;">
-      <p style="font-size:11px;color:#c0a882;margin:0;">© 2026 S.S Traders Smart POS · Designed & Curated by Vijiesh 🌿</p>
+      <p style="font-size:11px;color:#c0a882;margin:0;">© 2026 S.S Traders Management System · Designed & Curated by Vijiesh 🌿</p>
     </div>
   </div>
 </body>
 </html>`;
 
   await transporter.sendMail({
-    from: `"S.S Traders Smart POS" <${process.env.MAIL_USER}>`,
+    from: `"S.S Traders Management System" <${process.env.MAIL_USER}>`,
     to: toEmail,
-    subject: "Reset Your Password — S.S Traders Smart POS",
+    subject: "Reset Your Password — S.S Traders Management System",
     html,
   });
 }

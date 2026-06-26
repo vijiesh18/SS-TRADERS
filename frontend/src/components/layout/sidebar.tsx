@@ -114,7 +114,7 @@ export function Sidebar() {
               <div className="sidebar-logo-mark"><Paintbrush size={16} /></div>
               <div>
                 <div className="sidebar-logo-text">S.S Traders</div>
-                <div className="sidebar-logo-sub">SMART POS · NAGERCOIL</div>
+                <div className="sidebar-logo-sub">MANAGEMENT SYSTEM · NAGERCOIL</div>
               </div>
             </div>
             {/* Close btn — shown on mobile via CSS */}

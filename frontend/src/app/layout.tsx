@@ -4,7 +4,7 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 
 export const metadata: Metadata = {
-  title: "S.S Traders Smart POS",
+  title: "S.S Traders Management System",
   description:
     "Enterprise GST Billing, Inventory, and Analytics platform for S.S Traders - Paint Shop, Motors, Borewell Materials & Hardware",
   manifest: "/manifest.json",

@@ -193,7 +193,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <div style={{ fontSize:18, fontWeight:800, color:"#fff", letterSpacing:"-0.3px" }}>S.S Traders</div>
-                <div style={{ fontSize:11, color:"rgba(255,255,255,0.65)", letterSpacing:"0.5px" }}>Smart POS</div>
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.65)", letterSpacing:"0.5px" }}>Management System</div>
               </div>
             </div>
 
@@ -234,7 +234,7 @@ export default function LoginPage() {
 
           {/* Bottom credit */}
           <div style={{ position:"absolute", bottom:20, left:52, fontSize:11, color:"rgba(255,255,255,0.4)" }}>
-            © 2026 S.S Traders Smart POS · Designed & Curated by Vijiesh 🌿
+            © 2026 S.S Traders Management System · Designed & Curated by Vijiesh 🌿
           </div>
         </div>
 
@@ -258,7 +258,7 @@ export default function LoginPage() {
                 </div>
                 <div style={{ textAlign:"left" }}>
                   <div style={{ fontSize:18, fontWeight:800, color:"#2c2418", letterSpacing:"-0.3px", fontFamily:"Georgia,serif" }}>S.S Traders</div>
-                  <div style={{ fontSize:10, color:"#a8937a", textTransform:"uppercase", letterSpacing:"1px" }}>Smart POS · Nagercoil</div>
+                  <div style={{ fontSize:10, color:"#a8937a", textTransform:"uppercase", letterSpacing:"1px" }}>Management System · Nagercoil</div>
                 </div>
               </div>
             </div>

@@ -22,7 +22,7 @@ export function ModulePlaceholder({
             <Icon className="h-7 w-7" />
           </div>
           <p className="text-sm text-muted-foreground max-w-md">
-            This module is part of the S.S Traders Smart POS scaffold. The backend API endpoints are
+            This module is part of the S.S Traders Management System scaffold. The backend API endpoints are
             implemented — connect this page to the corresponding API to complete the UI.
           </p>
         </CardContent>

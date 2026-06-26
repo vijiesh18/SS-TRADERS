@@ -44,7 +44,7 @@ export function TopBar() {
   const meta =
     PAGE_META[pathname] ??
     Object.entries(PAGE_META).find(([k]) => pathname?.startsWith(k))?.[1] ??
-    { title: "S.S Traders", sub: "Smart POS" };
+    { title: "S.S Traders", sub: "Management System" };
 
   const today = new Date().toLocaleDateString("en-IN", {
     day: "numeric", month: "short", year: "numeric",
