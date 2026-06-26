@@ -378,10 +378,14 @@ input[type="number"], input[type="search"], select, textarea {
   /* ═══════════════════════════════════════════════
      CARDS — rounded, constrained, proper spacing
      ═══════════════════════════════════════════════ */
-  div[style*="borderRadius: 14"], div[style*="borderRadius:14"],
   div[style*="border-radius: 14"], div[style*="border-radius:14"] {
     max-width: 100% !important; box-sizing: border-box !important;
     border-radius: 12px !important;
+  }
+  /* Big chart / feature cards (border-radius 18) — constrain + lighter padding */
+  div[style*="border-radius: 18"], div[style*="border-radius:18"] {
+    max-width: 100% !important; box-sizing: border-box !important;
+    border-radius: 14px !important; padding: 16px !important;
   }
   /* Card inner padding */
   div[style*="borderRadius: 14"] > div[style*="padding: 16px"],
@@ -408,11 +412,11 @@ input[type="number"], input[type="search"], select, textarea {
      GRIDS — smart collapsing
      ═══════════════════════════════════════════════ */
   /* All inline grids → 1 col default */
-  div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; }
+  div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
   /* Stat/metric grids → 2 cols (compact cards side by side) */
-  div[style*="gridTemplateColumns"][style*="minmax(200px"],
-  div[style*="gridTemplateColumns"][style*="auto-fit"],
-  div[style*="gridTemplateColumns"][style*="auto-fill"] {
+  div[style*="grid-template-columns"][style*="minmax(200px"],
+  div[style*="grid-template-columns"][style*="auto-fit"],
+  div[style*="grid-template-columns"][style*="auto-fill"] {
     grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important;
   }
   /* Payment pills stay 4-col */
@@ -530,9 +534,9 @@ input[type="number"], input[type="search"], select, textarea {
   .glass-footer { font-size: 8px; padding: 4px 10px; bottom: 72px; }
   .page-content { padding: 10px 8px 72px !important; }
   /* Stat grids → single column on tiny screens */
-  div[style*="gridTemplateColumns"][style*="minmax(200px"],
-  div[style*="gridTemplateColumns"][style*="auto-fit"],
-  div[style*="gridTemplateColumns"][style*="auto-fill"] { grid-template-columns: 1fr !important; }
+  div[style*="grid-template-columns"][style*="minmax(200px"],
+  div[style*="grid-template-columns"][style*="auto-fit"],
+  div[style*="grid-template-columns"][style*="auto-fill"] { grid-template-columns: 1fr !important; }
   /* Metric card values smaller */
   p[style*="fontSize: 20"], p[style*="fontSize:20"] { font-size: 17px !important; }
 }
