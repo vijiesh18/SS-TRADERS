@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, UserCog, UserPlus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,10 +93,16 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
     >
       <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-lg font-semibold">{isEdit ? "Edit User" : "Add User"}</p>
-            <button type="button" onClick={() => onOpenChange(false)} className="rounded-lg p-1 hover:bg-slate-100">
-              <X className="h-4 w-4 text-muted-foreground" />
+          <div className="dialog-head">
+            <div className="dialog-head-icon">
+              {isEdit ? <UserCog size={18} /> : <UserPlus size={18} />}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p className="dialog-head-title">{isEdit ? "Edit User" : "Add User"}</p>
+              <p className="dialog-head-sub">{isEdit ? "Update account details & role" : "Create a new staff or admin account"}</p>
+            </div>
+            <button type="button" onClick={() => onOpenChange(false)} className="dialog-close" aria-label="Close">
+              <X className="h-4 w-4" />
             </button>
           </div>
 

@@ -294,6 +294,30 @@ input[type="number"], input[type="search"], select, textarea {
   color: #2c2418 !important;
   border-radius: 8px !important;
 }
+/* Refined focus ring on every form field (no layout shift) */
+input:focus, select:focus, textarea:focus,
+[role="combobox"]:focus, button[role="combobox"]:focus-visible {
+  border-color: var(--olive) !important;
+  box-shadow: 0 0 0 3px rgba(107,124,69,0.14) !important;
+  outline: none !important;
+}
+
+/* ── Dialogs sit above the sidebar + hamburger (z-60) ── */
+.fixed.inset-0.flex.items-center.justify-center { z-index: 80 !important; }
+
+/* Themed close (X) button used across dialogs */
+.dialog-close {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 9px; border: none; cursor: pointer;
+  background: rgba(180,155,110,0.12); color: #6b5d4a; transition: background 0.15s, color 0.15s; flex-shrink: 0;
+}
+.dialog-close:hover { background: rgba(192,85,42,0.12); color: #c0552a; }
+
+/* Polished header used across dialogs */
+.dialog-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(180,155,110,0.18); }
+.dialog-head-icon { width: 40px; height: 40px; border-radius: 11px; background: rgba(107,124,69,0.12); color: #6b7c45; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dialog-head-title { font-family: Georgia, serif; font-size: 18px; font-weight: 700; color: #2c2418; letter-spacing: -0.3px; line-height: 1.2; }
+.dialog-head-sub { font-size: 12px; color: #a8937a; margin-top: 2px; }
  
 /* Shimmer / skeleton loader */
 .shimmer-block {
