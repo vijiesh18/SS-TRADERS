@@ -511,6 +511,12 @@ input[type="number"], input[type="search"], select, textarea {
   }
 
   /* ═══════════════════════════════════════════════
+     USERS PAGE — card list on mobile, table on desktop
+     ═══════════════════════════════════════════════ */
+  .users-table-card { display: none !important; }
+  .users-card-view { display: flex !important; }
+
+  /* ═══════════════════════════════════════════════
      FOOTER — subtle, out of the way
      ═══════════════════════════════════════════════ */
   .glass-footer {
