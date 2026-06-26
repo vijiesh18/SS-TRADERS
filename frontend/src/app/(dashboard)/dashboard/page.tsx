@@ -280,25 +280,9 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Performance Overview header ─────────────────── */}
-      <div style={{ marginBottom:12 }}>
+      <div style={{ marginBottom:14 }}>
         <div style={{ fontSize:15, fontWeight:700, color:"#2c2418", letterSpacing:"-0.3px" }}>Performance Overview</div>
         <div style={{ fontSize:12, color:"#a8937a", marginTop:2 }}>Key metrics across your business</div>
-      </div>
-
-      {/* ── Period selector (own row, above the cards) ──── */}
-      <div style={{ display:"inline-flex", gap:3, background:"rgba(250,247,242,0.9)", border:"1px solid rgba(180,155,110,0.25)", borderRadius:10, padding:3, marginBottom:16 }}>
-        {PERIODS.map((p) => (
-          <button key={p.key} onClick={() => setPeriod(p.key)} style={{
-            padding:"6px 16px", fontSize:12, fontWeight:700, borderRadius:8, cursor:"pointer",
-            border: period===p.key ? "1px solid rgba(107,124,69,0.4)" : "1px solid transparent",
-            background: period===p.key ? "linear-gradient(135deg, #6b7c45, #8fa05a)" : "transparent",
-            color: period===p.key ? "#fff" : "#6b5d4a",
-            transition: "all 0.2s",
-            boxShadow: period===p.key ? "0 2px 10px rgba(107,124,69,0.30)" : "none",
-          }}>
-            {p.label}
-          </button>
-        ))}
       </div>
 
       {/* ── Metric cards ────────────────────────────────── */}
@@ -311,6 +295,22 @@ export default function DashboardPage() {
         <MetricCard label="Total Purchases" value={(summary as any)?.totalPurchases  ||0} icon={ShoppingCart}  accent="olive"  delay={300} isLoading={summaryLoading} />
         <MetricCard label="Total Customers" value={summary?.totalCustomers  ||0} icon={Users}         accent="sage"   delay={360} isLoading={summaryLoading} isCurrency={false} />
         <MetricCard label="Low Stock Items" value={summary?.lowStockProducts||0} icon={AlertTriangle} accent="rust"   delay={420} isLoading={summaryLoading} isCurrency={false} />
+      </div>
+
+      {/* ── Period selector (above the charts it controls) ── */}
+      <div style={{ display:"inline-flex", gap:3, background:"rgba(250,247,242,0.9)", border:"1px solid rgba(180,155,110,0.25)", borderRadius:10, padding:3, marginBottom:14 }}>
+        {PERIODS.map((p) => (
+          <button key={p.key} onClick={() => setPeriod(p.key)} style={{
+            padding:"6px 16px", fontSize:12, fontWeight:700, borderRadius:8, cursor:"pointer",
+            border: period===p.key ? "1px solid rgba(107,124,69,0.4)" : "1px solid transparent",
+            background: period===p.key ? "linear-gradient(135deg, #6b7c45, #8fa05a)" : "transparent",
+            color: period===p.key ? "#fff" : "#6b5d4a",
+            transition: "all 0.2s",
+            boxShadow: period===p.key ? "0 2px 10px rgba(107,124,69,0.30)" : "none",
+          }}>
+            {p.label}
+          </button>
+        ))}
       </div>
 
       {/* ── Charts row ──────────────────────────────────── */}
