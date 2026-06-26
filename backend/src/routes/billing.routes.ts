@@ -24,7 +24,8 @@ const billItemSchema = z.object({
 
 const createInvoiceSchema = z.object({
   customerId: z.string().optional().nullable(),
-  walkInPhone: z.string().optional().nullable(), // mobile for WhatsApp without saving a customer
+  walkInName: z.string().optional().nullable(),  // name typed at billing (no saved customer)
+  walkInPhone: z.string().optional().nullable(), // mobile typed at billing
   items: z.array(billItemSchema).min(1),
   paymentMethod: z.enum(["CASH", "UPI", "CARD", "CREDIT", "SPLIT"]).default("CASH"),
   paidAmount: z.number().min(0).default(0),
@@ -111,7 +112,27 @@ router.post("/invoices", authorize("ADMIN", "STAFF"), async (req: AuthRequest, r
   const parsed = createInvoiceSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { customerId, walkInPhone, items, paymentMethod, paidAmount, dueDate, roundOff } = parsed.data;
+  const { walkInName, walkInPhone, items, paymentMethod, paidAmount, dueDate, roundOff } = parsed.data;
+  let customerId = parsed.data.customerId;
+
+  // If billed as a walk-in but a name/number was entered, find-or-create a
+  // customer (matched by phone) so the details show on the bill and credit
+  // tracking works. Requires a phone since it's the unique key.
+  if (!customerId && walkInPhone?.trim()) {
+    const phone = walkInPhone.trim();
+    const name = walkInName?.trim() || "Walk-in Customer";
+    const existing = await prisma.customer.findUnique({ where: { phone } });
+    if (existing) {
+      customerId = existing.id;
+      // Fill in a real name if the saved one was just a placeholder
+      if (walkInName?.trim() && (!existing.name || existing.name === "Walk-in Customer")) {
+        await prisma.customer.update({ where: { id: existing.id }, data: { name: walkInName.trim() } });
+      }
+    } else {
+      const created = await prisma.customer.create({ data: { name, phone } });
+      customerId = created.id;
+    }
+  }
 
   let totals;
   try {

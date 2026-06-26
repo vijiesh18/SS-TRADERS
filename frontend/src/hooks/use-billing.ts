@@ -70,6 +70,7 @@ export function useCalculateBill() {
 
 interface CreateInvoicePayload {
   customerId?: string | null;
+  walkInName?: string | null;
   walkInPhone?: string | null;
   items: { productId: string; quantity: number; rate: number; discountPercent: number; gstPercentage?: number }[];
   paymentMethod: "CASH" | "UPI" | "CARD" | "CREDIT" | "SPLIT";

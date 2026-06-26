@@ -27,91 +27,121 @@ const TH: React.CSSProperties = {
 };
 
 // ─── Invoice Quick View ────────────────────────────────────────
+const PV = {
+  row: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, fontSize: 13 } as React.CSSProperties,
+  label: { color: "#a8937a" } as React.CSSProperties,
+  box: { background: "rgba(245,240,232,0.7)", border: "1px solid rgba(180,155,110,0.20)", borderRadius: 12, padding: 14 } as React.CSSProperties,
+  ghostBtn: { display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 8, border: "1px solid rgba(180,155,110,0.30)", background: "rgba(250,247,242,0.8)", color: "#6b5d4a", fontSize: 12, fontWeight: 600, cursor: "pointer" } as React.CSSProperties,
+};
+
 function InvoicePreviewModal({ invoiceId, onClose }: { invoiceId: string; onClose: () => void }) {
   const { data: invoice, isLoading } = useInvoice(invoiceId);
+  const statusColor: Record<string, [string, string]> = {
+    PAID: ["rgba(107,124,69,0.14)", "#4a5e28"],
+    PARTIAL: ["rgba(196,122,58,0.14)", "#8a4a10"],
+    UNPAID: ["rgba(192,85,42,0.14)", "#7a2010"],
+    CANCELLED: ["rgba(180,155,110,0.14)", "#6b5d4a"],
+  };
+  const [sb, sc] = statusColor[invoice?.status as string] || statusColor.UNPAID;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl"
-        style={{ animation: "slideUp 0.2s ease" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(44,40,32,0.55)", backdropFilter: "blur(4px)" }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", borderRadius: 18, background: "rgba(250,247,242,0.99)", border: "1px solid rgba(180,155,110,0.30)", boxShadow: "0 24px 64px rgba(100,80,40,0.25)", animation: "slideUp 0.2s ease" }}>
         <style>{`@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }`}</style>
-        <div className="flex items-center justify-between border-b px-6 py-4 bg-slate-50 rounded-t-2xl">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-indigo-100 p-2"><Receipt className="h-5 w-5 text-indigo-600" /></div>
+
+        {/* Header */}
+        <div style={{ background: "#2c2820", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderRadius: "18px 18px 0 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(196,122,58,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Receipt className="h-5 w-5" style={{ color: "#e8a45a" }} />
+            </div>
             <div>
-              <p className="font-bold text-slate-900">{invoice?.invoiceNumber || <span className="shimmer-block" style={{ display: "inline-block", width: 100, height: 14, borderRadius: 6 }} />}</p>
-              <p className="text-xs text-muted-foreground">{invoice ? formatDate(invoice.createdAt) : ""}</p>
+              <p style={{ fontWeight: 700, color: "rgba(245,240,230,0.95)", fontSize: 14 }}>{invoice?.invoiceNumber || "Loading…"}</p>
+              <p style={{ fontSize: 11, color: "rgba(180,155,110,0.8)" }}>{invoice ? formatDate(invoice.createdAt) : ""}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {invoice && <>
-              <Button size="sm" variant="outline" onClick={() => printInvoicePdfById(invoiceId)}>
-                <Printer className="h-3.5 w-3.5 mr-1" /> Print
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => downloadInvoicePdfById(invoiceId, invoice.invoiceNumber)}>
-                <Download className="h-3.5 w-3.5 mr-1" /> PDF
-              </Button>
+              <button style={PV.ghostBtn} onClick={() => printInvoicePdfById(invoiceId)}><Printer className="h-3.5 w-3.5" /> Print</button>
+              <button style={PV.ghostBtn} onClick={() => downloadInvoicePdfById(invoiceId, invoice.invoiceNumber)}><Download className="h-3.5 w-3.5" /> PDF</button>
             </>}
-            <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-slate-200 transition-colors"><X className="h-4 w-4" /></button>
+            <button onClick={onClose} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: 8, border: "none", background: "rgba(180,155,110,0.2)", color: "rgba(245,240,230,0.8)", cursor: "pointer" }}><X className="h-4 w-4" /></button>
           </div>
         </div>
+
         {isLoading ? (
-          <div className="p-8 space-y-4">{[1,2,3].map(i => <div key={i} className="h-8 animate-pulse rounded-lg bg-slate-100" />)}</div>
+          <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+            {[1, 2, 3].map((i) => <div key={i} className="shimmer-block" style={{ height: 34, borderRadius: 10 }} />)}
+          </div>
         ) : invoice ? (
-          <div className="p-6 space-y-5">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Bill To</p>
-                <p className="font-semibold">{invoice.customer?.name || "Walk-in Customer"}</p>
-                {invoice.customer?.phone && <p className="text-muted-foreground">{invoice.customer.phone}</p>}
+          <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Bill To + Details */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={PV.box}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "#a8937a", marginBottom: 6 }}>Bill To</p>
+                <p style={{ fontWeight: 700, color: "#2c2418" }}>{invoice.customer?.name || "Walk-in Customer"}</p>
+                {invoice.customer?.phone && <p style={{ color: "#a8937a", fontSize: 12, marginTop: 2 }}>{invoice.customer.phone}</p>}
               </div>
-              <div className="rounded-xl bg-slate-50 p-4 space-y-1.5">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Invoice Details</p>
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Invoice No</span><span className="font-medium">{invoice.invoiceNumber}</span></div>
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Date</span><span className="font-medium">{formatDate(invoice.createdAt)}</span></div>
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Status</span>
-                  <Badge variant={invoice.status === "PAID" ? "success" : invoice.status === "PARTIAL" ? "warning" : "destructive"} className="text-xs py-0">{invoice.status}</Badge>
-                </div>
+              <div style={{ ...PV.box, display: "flex", flexDirection: "column", gap: 6 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "#a8937a" }}>Invoice Details</p>
+                <div style={PV.row}><span style={PV.label}>Invoice No</span><span style={{ fontWeight: 600, color: "#2c2418" }}>{invoice.invoiceNumber}</span></div>
+                <div style={PV.row}><span style={PV.label}>Date</span><span style={{ fontWeight: 600, color: "#2c2418" }}>{formatDate(invoice.createdAt)}</span></div>
+                <div style={PV.row}><span style={PV.label}>Status</span><span style={{ display: "inline-flex", padding: "2px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, background: sb, color: sc }}>{invoice.status}</span></div>
               </div>
             </div>
-            <div className="rounded-xl border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50">
-                  <tr className="text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="px-4 py-3 text-left">#</th><th className="px-4 py-3 text-left">Product</th>
-                    <th className="px-4 py-3 text-right">Qty</th><th className="px-4 py-3 text-right">Rate</th>
-                    <th className="px-4 py-3 text-right">Amount</th>
+
+            {/* Items */}
+            <div style={{ border: "1px solid rgba(180,155,110,0.22)", borderRadius: 12, overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={{ ...TH, textAlign: "left", width: 36 }}>#</th>
+                    <th style={{ ...TH, textAlign: "left" }}>Product</th>
+                    <th style={{ ...TH, textAlign: "right" }}>Qty</th>
+                    <th style={{ ...TH, textAlign: "right" }}>Rate</th>
+                    <th style={{ ...TH, textAlign: "right" }}>Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody>
                   {invoice.items?.map((item: any, i: number) => (
-                    <tr key={item.id} className="hover:bg-slate-50/50">
-                      <td className="px-4 py-2.5 text-muted-foreground text-xs">{i + 1}</td>
-                      <td className="px-4 py-2.5 font-medium">{item.productName}</td>
-                      <td className="px-4 py-2.5 text-right">{Number(item.quantity)}</td>
-                      <td className="px-4 py-2.5 text-right">{formatCurrency(Number(item.rate))}</td>
-                      <td className="px-4 py-2.5 text-right font-semibold">{formatCurrency(Number(item.totalAmount))}</td>
+                    <tr key={item.id}>
+                      <td style={{ padding: "10px 14px", fontSize: 12, color: "#a8937a", borderBottom: "1px solid rgba(180,155,110,0.10)" }}>{i + 1}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 600, color: "#2c2418", borderBottom: "1px solid rgba(180,155,110,0.10)" }}>{item.productName}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 13, color: "#2c2418", textAlign: "right", borderBottom: "1px solid rgba(180,155,110,0.10)" }}>{Number(item.quantity)}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 13, color: "#2c2418", textAlign: "right", borderBottom: "1px solid rgba(180,155,110,0.10)" }}>{formatCurrency(Number(item.rate))}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 700, color: "#c47a3a", fontFamily: "Georgia,serif", textAlign: "right", borderBottom: "1px solid rgba(180,155,110,0.10)" }}>{formatCurrency(Number(item.totalAmount))}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="flex gap-4">
-              <div className="flex-1 rounded-xl border p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Sub Total</span><span>{formatCurrency(Number(invoice.subTotal))}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span>{formatCurrency(Number(invoice.gstAmount))}</span></div>
-                <div className="flex justify-between font-bold text-base border-t pt-2"><span>Grand Total</span><span className="text-indigo-600">{formatCurrency(Number(invoice.grandTotal))}</span></div>
+
+            {/* Totals + Payment */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 12 }}>
+              <div style={{ ...PV.box, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={PV.row}><span style={PV.label}>Sub Total</span><span style={{ color: "#2c2418" }}>{formatCurrency(Number(invoice.subTotal))}</span></div>
+                <div style={PV.row}><span style={PV.label}>GST</span><span style={{ color: "#2c2418" }}>{formatCurrency(Number(invoice.gstAmount))}</span></div>
+                <div style={{ ...PV.row, borderTop: "1px dashed rgba(180,155,110,0.30)", paddingTop: 8, fontWeight: 700, fontSize: 15 }}>
+                  <span style={{ color: "#2c2418" }}>Grand Total</span>
+                  <span style={{ color: "#6b7c45", fontFamily: "Georgia,serif" }}>{formatCurrency(Number(invoice.grandTotal))}</span>
+                </div>
               </div>
-              <div className="w-48 rounded-xl bg-slate-900 p-4 space-y-2.5 text-sm">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Payment</p>
-                <div className="flex justify-between"><span className="text-slate-400">Total</span><span className="text-white font-semibold">{formatCurrency(Number(invoice.grandTotal))}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Paid</span><span className="text-emerald-400 font-semibold">{formatCurrency(Number(invoice.paidAmount))}</span></div>
+              <div style={{ background: "#2c2820", borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "rgba(180,155,110,0.8)" }}>Payment</p>
+                <div style={PV.row}><span style={{ color: "rgba(180,155,110,0.85)" }}>Total</span><span style={{ color: "rgba(245,240,230,0.95)", fontWeight: 600 }}>{formatCurrency(Number(invoice.grandTotal))}</span></div>
+                <div style={PV.row}><span style={{ color: "rgba(180,155,110,0.85)" }}>Paid</span><span style={{ color: "#a8c07a", fontWeight: 600 }}>{formatCurrency(Number(invoice.paidAmount))}</span></div>
                 {Number(invoice.pendingAmount) > 0 && (
-                  <div className="flex justify-between border-t border-slate-700 pt-2"><span className="text-slate-300">Balance Due</span><span className="text-red-400 font-bold text-base">{formatCurrency(Number(invoice.pendingAmount))}</span></div>
+                  <div style={{ ...PV.row, borderTop: "1px solid rgba(180,155,110,0.25)", paddingTop: 8 }}>
+                    <span style={{ color: "rgba(220,205,180,0.85)" }}>Balance</span>
+                    <span style={{ color: "#e8865a", fontWeight: 700, fontFamily: "Georgia,serif" }}>{formatCurrency(Number(invoice.pendingAmount))}</span>
+                  </div>
                 )}
               </div>
             </div>
           </div>
-        ) : <div className="p-8 text-center text-muted-foreground">Not found.</div>}
+        ) : <div style={{ padding: 40, textAlign: "center", color: "#a8937a" }}>Invoice not found.</div>}
       </div>
     </div>
   );

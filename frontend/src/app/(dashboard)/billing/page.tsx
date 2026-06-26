@@ -166,7 +166,9 @@ export default function BillingPage() {
     const paid = paymentMethod === "CREDIT" ? Number(paidAmount || 0) : grandTotal;
     try {
       const result = await createInvoice.mutateAsync({
-        customerId, walkInPhone: !customerId && mobileNo ? mobileNo : undefined,
+        customerId,
+        walkInName: !customerId ? (customerName || customerQuery || undefined) : undefined,
+        walkInPhone: !customerId && mobileNo ? mobileNo : undefined,
         items: items.map((i) => ({
           productId: i.productId, quantity: i.quantity, rate: i.rate,
           discountPercent: i.discountPercent, gstPercentage: i.gstPercentage,
