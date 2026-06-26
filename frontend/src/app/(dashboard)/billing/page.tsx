@@ -212,6 +212,14 @@ export default function BillingPage() {
     if (w) w.addEventListener("load", () => { w.focus(); w.print(); });
   }
 
+  async function openThermalReceipt(invoiceId: string) {
+    // Fetch the 80mm receipt PDF via the authenticated client, then open it
+    const res = await api.get(`/billing/invoices/${invoiceId}/receipt`, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+    const w = window.open(url, "_blank");
+    if (w) w.addEventListener("load", () => { w.focus(); w.print(); });
+  }
+
   const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
   const balanceAmount = paymentMethod === "CREDIT"
     ? Math.max((totals?.grandTotal || 0) - Number(paidAmount || 0), 0) : 0;
@@ -646,7 +654,7 @@ export default function BillingPage() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6, marginBottom: 8 }}>
                     {[
                       { label: "Print", icon: <Printer size={12} />, action: () => printInvoicePdf(lastInvoice.id) },
-                      { label: "Receipt", icon: <Receipt size={12} />, action: () => { window.open(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/billing/invoices/${lastInvoice.id}/receipt`, "_blank"); } },
+                      { label: "Receipt", icon: <Receipt size={12} />, action: () => openThermalReceipt(lastInvoice.id) },
                       { label: "PDF", icon: <FileDown size={12} />, action: () => downloadInvoicePdf(lastInvoice.id) },
                     ].map(({ label, icon, action }) => (
                       <button key={label} onClick={action}
