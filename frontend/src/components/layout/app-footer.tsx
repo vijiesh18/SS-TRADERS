@@ -1,5 +1,5 @@
 export function AppFooter() {
-  const text = "SS TRADERS SMART BILLING  ·  Designed & Curated by Vijiesh";
+  const text = "SS TRADERS MANAGEMENT SYSTEM  ·  Designed & Curated by Vijiesh";
   return (
     <footer className="glass-footer">
       <span className="footer-scroll-track">
