@@ -1,7 +1,7 @@
-// SS Traders Smart POS — Service Worker
+// SS Traders Management System — Service Worker
 // Strategy: network-first (always fresh when online), cache as offline fallback.
 // Bump CACHE_NAME on each deploy to invalidate old caches.
-const CACHE_NAME = "ss-traders-v2";
+const CACHE_NAME = "ss-traders-v3";
 
 // Only precache the offline fallback — it's the one page guaranteed to load
 // without auth. Auth-gated pages (/dashboard etc.) redirect to /login when
