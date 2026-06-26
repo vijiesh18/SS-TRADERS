@@ -182,17 +182,17 @@ function ProductDialog({ product, onClose }: { product: ProductItem | null; onCl
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardContent className="space-y-4 p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, paddingBottom: 14, marginBottom: 4, borderBottom: "1px solid rgba(180,155,110,0.18)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
               {isNew && step === "details" && (cats || []).length > 0 && (
                 <button onClick={() => setStep("category")} title="Back to category"
                   style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "#6b5d4a", padding: 2 }}>
                   <ChevronLeft className="h-5 w-5" />
                 </button>
               )}
-              <p className="text-lg font-semibold">{isNew ? "Add New Product" : "Edit Product"}</p>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: 18, fontWeight: 700, color: "#2c2418", letterSpacing: "-0.3px" }}>{isNew ? "Add New Product" : "Edit Product"}</p>
             </div>
-            <button onClick={onClose}><X className="h-4 w-4 text-muted-foreground" /></button>
+            <button onClick={onClose} className="dialog-close" aria-label="Close"><X className="h-4 w-4" /></button>
           </div>
 
           {isNew && step === "category" ? (

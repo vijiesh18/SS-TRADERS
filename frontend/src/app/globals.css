@@ -302,8 +302,18 @@ input:focus, select:focus, textarea:focus,
   outline: none !important;
 }
 
-/* ── Dialogs sit above the sidebar + hamburger (z-60) ── */
-.fixed.inset-0.flex.items-center.justify-center { z-index: 80 !important; }
+/* ── Inline modal overlays: above sidebar/hamburger, with a consistent
+   warm dimmed backdrop so the page behind doesn't bleed through ── */
+.fixed.inset-0.flex.items-center.justify-center {
+  z-index: 80 !important;
+  background: rgba(44,40,32,0.58) !important;
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+}
+/* Inline modal cards (ShadCN Card inside an overlay) — fully opaque */
+.fixed.inset-0.flex.items-center.justify-center > .bg-card,
+.fixed.inset-0.flex.items-center.justify-center > div > .bg-card {
+  background: #faf7f2 !important;
+}
 
 /* ── Shared portal modal (ui/dialog) ── */
 .dialog-overlay {
