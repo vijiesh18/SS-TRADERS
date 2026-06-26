@@ -28,7 +28,7 @@ router.get("/", authorize("ADMIN", "ACCOUNTANT", "STAFF"), async (req: AuthReque
   // Formal credit records (linked to named customers)
   const records = await prisma.creditRecord.findMany({
     where,
-    include: { customer: true, invoice: { select: { invoiceNumber: true, paymentMethod: true, createdAt: true } }, payments: true },
+    include: { customer: true, invoice: { select: { id: true, invoiceNumber: true, paymentMethod: true, createdAt: true } }, payments: true },
     orderBy: { createdAt: "desc" },
   });
 

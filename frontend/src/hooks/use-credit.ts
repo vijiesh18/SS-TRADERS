@@ -9,7 +9,7 @@ export interface CreditRecord {
   dueDate?: string | null;
   isSettled: boolean;
   customer: { id: string; name: string; phone: string };
-  invoice: { invoiceNumber: string; paymentMethod: string; createdAt: string };
+  invoice: { id: string; invoiceNumber: string; paymentMethod: string; createdAt: string };
   payments: { id: string; amount: string; paymentMethod: string; note?: string | null; paidAt: string }[];
 }
 

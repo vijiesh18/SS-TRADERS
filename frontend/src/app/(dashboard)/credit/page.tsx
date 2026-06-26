@@ -404,7 +404,7 @@ function CreditRow({ record }: { record: CreditRecord }) {
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
-            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="View Bill" onClick={() => setPreviewId(record.id)}>
+            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="View Bill" onClick={() => setPreviewId(record.invoice.id)}>
               <Eye className="h-3.5 w-3.5" />
             </Button>
             <Button size="sm" className="h-7 px-3 text-xs bg-indigo-600 hover:bg-indigo-700" onClick={() => setPayOpen(true)}>
