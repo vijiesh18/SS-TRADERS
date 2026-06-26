@@ -54,6 +54,14 @@ function categoryDefaults(name: string): { unit?: string; hsnCode?: string; hint
   return {};
 }
 
+// The shop's main categories — the Add Product picker shows only these so the
+// shopkeeper isn't overwhelmed by every granular sub-category in the database.
+const MAIN_CATEGORY_NAMES = ["paints", "accessory", "accessories", "borewell materials", "pumps", "motors", "hardware"];
+function mainCategories<T extends { name: string }>(cats: T[]): T[] {
+  const main = cats.filter((c) => MAIN_CATEGORY_NAMES.includes(c.name.trim().toLowerCase()));
+  return main.length > 0 ? main : cats; // fall back to all if none matched
+}
+
 // ─── Quick Add-Stock Dialog (unchanged logic) ───
 function QuickStockDialog({ product, onClose }: { product: ProductItem; onClose: () => void }) {
   const [qty, setQty] = useState("");
@@ -199,7 +207,7 @@ function ProductDialog({ product, onClose }: { product: ProductItem | null; onCl
                 <p className="text-sm" style={{ color: "#a8937a" }}>No categories set up yet — you can continue without one.</p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {(cats || []).map((c) => (
+                  {mainCategories(cats || []).map((c) => (
                     <button key={c.id} onClick={() => chooseCategory(c.id)}
                       style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(180,155,110,0.28)", background: "rgba(250,247,242,0.9)", color: "#2c2418", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(107,124,69,0.08)"; e.currentTarget.style.borderColor = "#6b7c45"; }}
