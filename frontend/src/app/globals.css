@@ -478,9 +478,12 @@ input[type="number"], input[type="search"], select, textarea {
   /* ═══════════════════════════════════════════════
      DIALOGS — full-width on mobile
      ═══════════════════════════════════════════════ */
+  /* Anchor inline (Card-based) dialogs to the top so the keyboard
+     doesn't hide the lower fields while typing */
+  .fixed.inset-0.flex.items-center { align-items: flex-start !important; padding-top: 12px !important; }
   .fixed.inset-0 > div:not(.sidebar-glass) {
-    max-width: calc(100vw - 20px) !important; margin: 10px !important;
-    max-height: calc(100vh - 20px) !important; overflow-y: auto;
+    max-width: calc(100vw - 20px) !important; margin: 0 auto !important;
+    max-height: calc(100dvh - 24px) !important; overflow-y: auto;
     border-radius: 16px !important;
   }
   /* Radix dialogs (Users, Product form) center vertically by default, which

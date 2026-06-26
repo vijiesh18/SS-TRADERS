@@ -1,13 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { X } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +51,16 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
     setError(null);
   }, [user, open]);
 
+  // Close on ESC
+  useEffect(() => {
+    if (!open) return;
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onOpenChange(false); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [open, onOpenChange]);
+
+  if (!open) return null;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -82,71 +87,79 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
   const isPending = createUser.isPending || updateUser.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit User" : "Add User"}</DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Name *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onOpenChange(false); }}
+    >
+      <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-lg font-semibold">{isEdit ? "Edit User" : "Add User"}</p>
+            <button type="button" onClick={() => onOpenChange(false)} className="rounded-lg p-1 hover:bg-slate-100">
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Email *</Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isEdit} />
-            {isEdit && <p className="text-xs text-muted-foreground">Email cannot be changed</p>}
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Name *</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+            </div>
 
-          <div className="space-y-1.5">
-            <Label>Phone</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
+            <div className="space-y-1.5">
+              <Label>Email *</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isEdit} />
+              {isEdit && <p className="text-xs text-muted-foreground">Email cannot be changed</p>}
+            </div>
 
-          <div className="space-y-1.5">
-            <Label>Role *</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as Role)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ROLES.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>
-                    {r.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {ROLES.find((r) => r.value === role)?.description}
-            </p>
-          </div>
+            <div className="space-y-1.5">
+              <Label>Phone</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
 
-          <div className="space-y-1.5">
-            <Label>{isEdit ? "New Password (optional)" : "Password *"}</Label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={isEdit ? "Leave blank to keep current password" : "Minimum 6 characters"}
-              required={!isEdit}
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label>Role *</Label>
+              <Select value={role} onValueChange={(v) => setRole(v as Role)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLES.map((r) => (
+                    <SelectItem key={r.value} value={r.value}>
+                      {r.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {ROLES.find((r) => r.value === role)?.description}
+              </p>
+            </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+            <div className="space-y-1.5">
+              <Label>{isEdit ? "New Password (optional)" : "Password *"}</Label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={isEdit ? "Leave blank to keep current password" : "Minimum 6 characters"}
+                required={!isEdit}
+              />
+            </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : isEdit ? "Save Changes" : "Add User"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Saving..." : isEdit ? "Save Changes" : "Add User"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
