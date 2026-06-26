@@ -337,6 +337,11 @@ input[type="number"], input[type="search"], select, textarea {
      TOPBAR — compact, clean
      ═══════════════════════════════════════════════ */
   .hamburger-btn { display: flex; }
+  /* Hide hamburger once the drawer is open — the sidebar has its own X.
+     body.drawer-open is the reliable signal (toggled in sidebar.tsx);
+     :has() kept as a CSS-only backup for browsers that support it. */
+  body.drawer-open .hamburger-btn,
+  .layout-shell:has(.sidebar-glass.sidebar-open) .hamburger-btn { display: none !important; }
   .topbar-glass {
     padding: 0 12px 0 56px !important; height: 50px; gap: 8px;
     border-bottom: 1px solid rgba(180,155,110,0.15) !important;
@@ -504,6 +509,7 @@ input[type="number"], input[type="search"], select, textarea {
   .glass-footer::before, .glass-footer::after { width: 4px; height: 4px; }
   /* Hide the floating footer while the sidebar drawer is open so it
      doesn't overlap the user/Logout section at the bottom */
+  body.drawer-open .glass-footer,
   .sidebar-glass.sidebar-open ~ .glass-footer { display: none !important; }
   .mobile-nav { display: flex !important; }
 

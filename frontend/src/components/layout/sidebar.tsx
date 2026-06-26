@@ -64,11 +64,19 @@ export function Sidebar() {
     return () => window.removeEventListener("keydown", fn);
   }, []);
 
-  // Prevent body scroll when open on mobile
+  // Prevent body scroll + flag drawer-open state when open on mobile
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
+    if (open) {
+      document.body.style.overflow = "hidden";
+      document.body.classList.add("drawer-open");
+    } else {
+      document.body.style.overflow = "";
+      document.body.classList.remove("drawer-open");
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.classList.remove("drawer-open");
+    };
   }, [open]);
 
   async function handleLogout() {
