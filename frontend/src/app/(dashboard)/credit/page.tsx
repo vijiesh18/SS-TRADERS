@@ -444,10 +444,10 @@ export default function CreditPage() {
   const totalPendingBalance = pendingInvoices.reduce((s, i) => s + Number(i.pendingAmount), 0);
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418", lineHeight: 1.2 }}>Credit Management</h1>
-        <p style={{ fontSize: 12, color: "#a8937a", marginTop: 4, fontWeight: 500 }}>Track outstanding balances and collect payments</p>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 700, letterSpacing: "-0.4px", color: "#2c2418", lineHeight: 1.2 }}>Credit Management</h1>
+        <p style={{ fontSize: 13, color: "#a8937a", marginTop: 5, fontWeight: 500 }}>Track outstanding balances and collect payments</p>
       </div>
 
       {/* Summary */}
@@ -474,17 +474,8 @@ export default function CreditPage() {
         ))}
       </div>
 
-      {/* Search + Filter */}
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-        <div style={{ position: "relative", flex: "1 1 240px", minWidth: 200 }}>
-          <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#a8937a", pointerEvents: "none" }} />
-          <input
-            placeholder="Search by customer name or phone..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: "100%", background: "rgba(255,252,248,0.9)", border: "1px solid rgba(180,155,110,0.30)", borderRadius: 8, padding: "9px 12px 9px 36px", fontSize: 13, color: "#2c2418", outline: "none", boxSizing: "border-box" }}
-          />
-        </div>
+      {/* Filter tabs (left, like Estimates) + search (right) */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "inline-flex", gap: 3, padding: 3, background: "rgba(245,240,232,0.9)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 10 }}>
           {(["all", "due-today", "overdue"] as const).map((f) => {
             const active = filter === f;
@@ -495,6 +486,15 @@ export default function CreditPage() {
               </button>
             );
           })}
+        </div>
+        <div style={{ position: "relative", flex: "0 1 280px", minWidth: 200 }}>
+          <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#a8937a", pointerEvents: "none" }} />
+          <input
+            placeholder="Search by customer name or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: "100%", background: "rgba(255,252,248,0.9)", border: "1px solid rgba(180,155,110,0.30)", borderRadius: 8, padding: "9px 12px 9px 36px", fontSize: 13, color: "#2c2418", outline: "none", boxSizing: "border-box" }}
+          />
         </div>
       </div>
 
