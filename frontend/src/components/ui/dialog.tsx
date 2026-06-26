@@ -88,9 +88,8 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="dialog-close"
-            style={{ position: "absolute", right: 16, top: 16 }}
             aria-label="Close"
+            style={{ position: "absolute", right: 14, top: 11, display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(180,155,110,0.22)", color: "rgba(245,240,230,0.85)", cursor: "pointer" }}
           >
             <X className="h-4 w-4" />
           </button>
@@ -113,10 +112,12 @@ function DialogClose({ children, asChild }: { children: React.ReactNode; asChild
   return <button type="button" onClick={() => setOpen(false)}>{children}</button>;
 }
 
+// Full-bleed dark-walnut header bar (matches the app's content-card headers).
+// Negative margins cancel the .dialog-panel 20px padding to span edge-to-edge.
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("flex flex-col space-y-1 text-left", className)}
-    style={{ paddingBottom: 14, marginBottom: 4, borderBottom: "1px solid rgba(180,155,110,0.18)", paddingRight: 36 }}
+    className={cn("flex flex-col text-left", className)}
+    style={{ background: "#2c2820", margin: "-20px -20px 18px", padding: "12px 20px", paddingRight: 50, borderRadius: "16px 16px 0 0", gap: 2 }}
     {...props}
   />
 );
@@ -126,7 +127,7 @@ const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
     <h2
       ref={ref}
       className={cn("leading-none", className)}
-      style={{ fontFamily: "Georgia, serif", fontSize: 18, fontWeight: 700, color: "#2c2418", letterSpacing: "-0.3px", lineHeight: 1.2 }}
+      style={{ fontSize: 14.5, fontWeight: 700, color: "rgba(245,240,230,0.95)", letterSpacing: "-0.1px", lineHeight: 1.25 }}
       {...props}
     />
   )
@@ -135,7 +136,7 @@ DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn(className)} style={{ fontSize: 12.5, color: "#a8937a" }} {...props} />
+    <p ref={ref} className={cn(className)} style={{ fontSize: 11.5, color: "rgba(180,155,110,0.8)" }} {...props} />
   )
 );
 DialogDescription.displayName = "DialogDescription";

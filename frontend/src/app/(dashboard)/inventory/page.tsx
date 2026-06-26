@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { AlertTriangle, Archive, Zap, History, Plus, Search, Pencil, PackagePlus, X, Check, Tag, ArrowRight, ChevronLeft, Lightbulb } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,15 +74,18 @@ function QuickStockDialog({ product, onClose }: { product: ProductItem; onClose:
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <Card className="w-full max-w-sm">
-        <CardContent className="space-y-4 p-6">
-          <div className="flex items-center justify-between">
-            <p className="font-semibold">Add Stock</p>
-            <button onClick={onClose}><X className="h-4 w-4 text-muted-foreground" /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(44,40,32,0.58)", backdropFilter: "blur(5px)" }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ width: "100%", maxWidth: 400, background: "rgba(250,247,242,0.99)", border: "1px solid rgba(180,155,110,0.28)", borderRadius: 16, overflow: "hidden", boxShadow: "0 24px 64px rgba(100,80,40,0.28)" }}>
+        <div style={{ background: "#2c2820", padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "rgba(245,240,230,0.95)" }}>Add Stock</p>
+          <button onClick={onClose} aria-label="Close" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(180,155,110,0.2)", color: "rgba(245,240,230,0.85)", cursor: "pointer" }}><X className="h-4 w-4" /></button>
+        </div>
+        <div className="space-y-4" style={{ padding: 20 }}>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: "#2c2418" }}>{product.name}</p>
+            <p style={{ fontSize: 12, color: "#a8937a", marginTop: 2 }}>Current stock: {Number(product.stockQuantity)}</p>
           </div>
-          <p className="text-sm text-muted-foreground">{product.name}</p>
-          <p className="text-xs text-muted-foreground">Current stock: {Number(product.stockQuantity)}</p>
           <div className="space-y-1.5">
             <Label className="text-xs">Quantity to Add</Label>
             <Input type="number" placeholder="e.g. 10" value={qty} min={1} onChange={(e) => setQty(e.target.value)} autoFocus />
@@ -99,8 +101,8 @@ function QuickStockDialog({ product, onClose }: { product: ProductItem; onClose:
               {adjustment.isPending ? "Adding..." : "Add Stock"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -179,21 +181,23 @@ function ProductDialog({ product, onClose }: { product: ProductItem | null; onCl
   const isSaving = createProduct.isPending || updateProduct.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardContent className="space-y-4 p-6">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, paddingBottom: 14, marginBottom: 4, borderBottom: "1px solid rgba(180,155,110,0.18)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-              {isNew && step === "details" && (cats || []).length > 0 && (
-                <button onClick={() => setStep("category")} title="Back to category"
-                  style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "#6b5d4a", padding: 2 }}>
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-              )}
-              <p style={{ fontFamily: "Georgia, serif", fontSize: 18, fontWeight: 700, color: "#2c2418", letterSpacing: "-0.3px" }}>{isNew ? "Add New Product" : "Edit Product"}</p>
-            </div>
-            <button onClick={onClose} className="dialog-close" aria-label="Close"><X className="h-4 w-4" /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(44,40,32,0.58)", backdropFilter: "blur(5px)" }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ width: "100%", maxWidth: 680, maxHeight: "90vh", overflowY: "auto", background: "rgba(250,247,242,0.99)", border: "1px solid rgba(180,155,110,0.28)", borderRadius: 16, boxShadow: "0 24px 64px rgba(100,80,40,0.28)" }}>
+        {/* Walnut header bar — matches the app's card headers */}
+        <div style={{ background: "#2c2820", padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, position: "sticky", top: 0, zIndex: 2 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            {isNew && step === "details" && (cats || []).length > 0 && (
+              <button onClick={() => setStep("category")} title="Back to category"
+                style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "rgba(220,205,180,0.85)", padding: 2 }}>
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )}
+            <p style={{ fontSize: 14, fontWeight: 700, color: "rgba(245,240,230,0.95)" }}>{isNew ? "Add New Product" : "Edit Product"}</p>
           </div>
+          <button onClick={onClose} aria-label="Close" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(180,155,110,0.2)", color: "rgba(245,240,230,0.85)", cursor: "pointer" }}><X className="h-4 w-4" /></button>
+        </div>
+        <div className="space-y-4" style={{ padding: 20 }}>
 
           {isNew && step === "category" ? (
             /* ── STEP 1 — pick a category ── */
@@ -315,8 +319,8 @@ function ProductDialog({ product, onClose }: { product: ProductItem | null; onCl
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
