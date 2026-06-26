@@ -1,10 +1,12 @@
 import type { Response, NextFunction } from "express";
 import type { AuthRequest } from "@/middleware/auth";
 import { verifyAccessToken } from "@/lib/jwt";
+import { computeBillTotals } from "@/lib/billing-calc";
 import {
   demoDashboardSummary, demoDashboardCharts, demoInvoices, demoCustomers,
   demoSuppliers, demoCredit, demoCreditSummary, demoSalesReport,
   demoProfitReport, demoGstReport, demoInventoryReport, demoExpenses,
+  demoProducts, demoProductSearch, demoCategoriesList, demoLowStock,
 } from "@/lib/demo-data";
 
 const DEMO_EMAIL = "demo@sstraders.com";
@@ -77,14 +79,55 @@ export async function demoGuard(req: AuthRequest, res: Response, next: NextFunct
   // Allow auth endpoints
   if (path.startsWith("/api/auth")) return next();
 
-  // Allow products & inventory product reads (show the real catalog)
-  if (method === "GET" && (path.startsWith("/api/products") || path.startsWith("/api/inventory/products"))) return next();
-
   // Allow settings reads
   if (method === "GET" && path.startsWith("/api/settings")) return next();
 
-  // Allow users read
+  // Allow users read (masked in the UI)
   if (method === "GET" && path.startsWith("/api/users")) return next();
+
+  // ── Sample product catalogue (so the demo looks fully stocked) ──
+  if (method === "GET") {
+    if (path === "/api/products" || path === "/api/inventory/products")
+      return res.json(demoProducts(req.query.search as string, Number(req.query.page) || 1, Number(req.query.limit) || 30));
+    if (path === "/api/products/search")
+      return res.json(demoProductSearch(req.query.q as string));
+    if (path === "/api/products/categories")
+      return res.json(demoCategoriesList());
+    if (path.startsWith("/api/products/barcode/"))
+      return res.status(404).json({ error: "No product found for this barcode in demo." });
+    if (path.endsWith("/recommendations"))
+      return res.json({ results: [] });
+    if (path === "/api/inventory/low-stock")
+      return res.json(demoLowStock());
+    if (path === "/api/inventory/dead-stock")
+      return res.json({ items: [], cutoffDays: Number(req.query.days) || 90 });
+    if (path === "/api/inventory/fast-moving")
+      return res.json({ items: [], periodDays: Number(req.query.days) || 30 });
+    // Single product detail (/api/products/:id) — not needed in demo flows
+    if (path.startsWith("/api/products/"))
+      return res.json({});
+  }
+
+  // ── Bill preview (POST but read-only) — compute live so totals work ──
+  if (method === "POST" && path === "/api/billing/calculate") {
+    const items = (req.body?.items || []).map((i: any) => ({
+      quantity: Number(i.quantity) || 0,
+      rate: Number(i.rate) || 0,
+      discountPercent: Number(i.discountPercent) || 0,
+      gstPercentage: i.gstPercentage !== undefined ? Number(i.gstPercentage) : 18,
+    }));
+    const totals = computeBillTotals(items);
+    return res.json({
+      computedItems: totals.computedLines,
+      subTotal: totals.subTotal,
+      totalDiscount: totals.totalDiscount,
+      gstAmount: totals.gstAmount,
+      cgstAmount: totals.cgstAmount,
+      sgstAmount: totals.sgstAmount,
+      igstAmount: totals.igstAmount,
+      grandTotal: totals.subTotal + totals.gstAmount,
+    });
+  }
 
   // Check for pre-defined empty GET responses
   if (method === "GET") {

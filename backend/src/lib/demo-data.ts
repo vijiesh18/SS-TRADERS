@@ -226,3 +226,89 @@ export function demoExpenses() {
   const totalAmount = items.reduce((s, r) => s + r.amount, 0);
   return { items, totalAmount, total: items.length, page: 1, limit: 25 };
 }
+
+// ── Sample product catalogue for DEMO MODE ──────────────────────
+export const DEMO_CATEGORIES = [
+  { id: "demo-cat-paints", name: "Paints" },
+  { id: "demo-cat-accessories", name: "Accessories" },
+  { id: "demo-cat-borewell", name: "Borewell Materials" },
+  { id: "demo-cat-pumps", name: "Motors" },
+  { id: "demo-cat-hardware", name: "Hardware" },
+];
+
+interface CatalogItem {
+  name: string; code: string; cat: string; unit: string;
+  buy: number; sell: number; stock: number; min: number; hsn: string; gst: number;
+}
+
+const DEMO_CATALOG: CatalogItem[] = [
+  { name: "Asian Paints Apex Ultima Exterior 20L", code: "AP-001", cat: "demo-cat-paints", unit: "LTR", buy: 3850, sell: 4750, stock: 24, min: 5, hsn: "3209", gst: 18 },
+  { name: "Asian Paints Royale Luxury 4L", code: "AP-002", cat: "demo-cat-paints", unit: "LTR", buy: 1180, sell: 1499, stock: 18, min: 5, hsn: "3209", gst: 18 },
+  { name: "Berger Silk Glamour Interior 10L", code: "BG-101", cat: "demo-cat-paints", unit: "LTR", buy: 2100, sell: 2650, stock: 4, min: 6, hsn: "3209", gst: 18 },
+  { name: "Nerolac Excel Total 20L", code: "NL-220", cat: "demo-cat-paints", unit: "LTR", buy: 3400, sell: 4200, stock: 12, min: 5, hsn: "3209", gst: 18 },
+  { name: "Asian Paints Wall Primer 10L", code: "AP-310", cat: "demo-cat-paints", unit: "LTR", buy: 850, sell: 1150, stock: 30, min: 8, hsn: "3209", gst: 18 },
+  { name: "JK Wall Putty 40Kg", code: "PT-400", cat: "demo-cat-paints", unit: "KG", buy: 760, sell: 980, stock: 22, min: 10, hsn: "3214", gst: 18 },
+  { name: "Paint Brush Set (4pc)", code: "AC-501", cat: "demo-cat-accessories", unit: "PCS", buy: 120, sell: 220, stock: 60, min: 15, hsn: "9603", gst: 18 },
+  { name: "Roller 9 inch with Tray", code: "AC-502", cat: "demo-cat-accessories", unit: "PCS", buy: 95, sell: 180, stock: 3, min: 10, hsn: "9603", gst: 18 },
+  { name: "Masking Tape 1 inch", code: "AC-503", cat: "demo-cat-accessories", unit: "PCS", buy: 22, sell: 45, stock: 120, min: 25, hsn: "9603", gst: 18 },
+  { name: "Sand Paper Sheet (120 grit)", code: "AC-504", cat: "demo-cat-accessories", unit: "PCS", buy: 8, sell: 18, stock: 200, min: 40, hsn: "6805", gst: 18 },
+  { name: "PVC Pipe 4 inch (per ft)", code: "BW-601", cat: "demo-cat-borewell", unit: "PCS", buy: 180, sell: 240, stock: 45, min: 12, hsn: "3917", gst: 18 },
+  { name: "Borewell Casing Pipe 6 inch", code: "BW-602", cat: "demo-cat-borewell", unit: "PCS", buy: 520, sell: 680, stock: 8, min: 10, hsn: "3917", gst: 18 },
+  { name: "Submersible Pump 1HP", code: "PM-701", cat: "demo-cat-pumps", unit: "PCS", buy: 7800, sell: 9500, stock: 6, min: 3, hsn: "8413", gst: 18 },
+  { name: "Submersible Pump 2HP", code: "PM-702", cat: "demo-cat-pumps", unit: "PCS", buy: 12500, sell: 15200, stock: 2, min: 2, hsn: "8413", gst: 18 },
+  { name: "GI Nail 3 inch (1Kg)", code: "HW-801", cat: "demo-cat-hardware", unit: "KG", buy: 75, sell: 120, stock: 40, min: 10, hsn: "7317", gst: 18 },
+  { name: "Door Hinge Set", code: "HW-802", cat: "demo-cat-hardware", unit: "PCS", buy: 60, sell: 110, stock: 5, min: 8, hsn: "8302", gst: 18 },
+];
+
+function buildProduct(c: CatalogItem) {
+  const cat = DEMO_CATEGORIES.find((x) => x.id === c.cat) || null;
+  return {
+    id: `demo-prod-${c.code}`,
+    productCode: c.code,
+    name: c.name,
+    unit: c.unit,
+    variant: null as string | null,
+    hsnCode: c.hsn,
+    gstPercentage: String(c.gst),
+    sellingPrice: c.sell.toFixed(2),
+    purchasePrice: c.buy.toFixed(2),
+    stockQuantity: String(c.stock),
+    minimumStock: String(c.min),
+    barcode: null as string | null,
+    shadeCode: null as string | null,
+    category: cat,
+    brand: null as { id: string; name: string } | null,
+  };
+}
+
+export function demoCategoriesList() {
+  return { items: DEMO_CATEGORIES.map((c) => ({ ...c, subcategories: [] })) };
+}
+
+export function demoProducts(search?: string, page = 1, limit = 30) {
+  let all = DEMO_CATALOG.map(buildProduct);
+  if (search) {
+    const q = search.toLowerCase();
+    all = all.filter((p) => p.name.toLowerCase().includes(q) || p.productCode.toLowerCase().includes(q));
+  }
+  const total = all.length;
+  const items = all.slice((page - 1) * limit, page * limit);
+  return { items, total, page, limit };
+}
+
+export function demoProductSearch(q?: string) {
+  if (!q) return { results: [] };
+  const query = q.toLowerCase();
+  const results = DEMO_CATALOG
+    .map(buildProduct)
+    .filter((p) => p.name.toLowerCase().includes(query) || p.productCode.toLowerCase().includes(query) || (p.barcode || "").includes(query))
+    .slice(0, 12);
+  return { results };
+}
+
+export function demoLowStock() {
+  const items = DEMO_CATALOG
+    .filter((c) => c.stock <= c.min)
+    .map(buildProduct);
+  return { items };
+}

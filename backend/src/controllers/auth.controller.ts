@@ -118,5 +118,5 @@ export async function me(req: AuthRequest, res: Response) {
   if (!req.user) return res.status(401).json({ error: "Unauthenticated" });
   const user = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { id: true, name: true, email: true, phone: true, role: true, isActive: true, createdAt: true } });
   if (!user) return res.status(404).json({ error: "User not found" });
-  return res.json({ ...user, permissions: ROLE_PERMISSIONS[user.role] });
+  return res.json({ ...user, isDemo: user.email === "demo@sstraders.com", permissions: ROLE_PERMISSIONS[user.role] });
 }

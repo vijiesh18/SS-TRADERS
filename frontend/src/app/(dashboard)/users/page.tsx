@@ -69,7 +69,7 @@ export default function UsersPage() {
 
   const currentUser = useAuthStore((s) => s.user);
   const isAdmin = currentUser?.role === "ADMIN";
-  const isDemo = !!currentUser?.isDemo;
+  const isDemo = !!currentUser?.isDemo || currentUser?.email === "demo@sstraders.com";
 
   // In the public demo, mask real contact details
   const showEmail = (email: string) => (isDemo ? "••••••@••••••" : email);
