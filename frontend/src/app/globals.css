@@ -497,10 +497,11 @@ input[type="number"], input[type="search"], select, textarea {
      FOOTER — subtle, out of the way
      ═══════════════════════════════════════════════ */
   .glass-footer {
-    bottom: 78px; font-size: 9px; padding: 5px 12px;
-    max-width: calc(100vw - 24px); gap: 6px !important;
-    opacity: 0.85;
+    bottom: 80px; font-size: 8px; padding: 3px 10px;
+    max-width: calc(100vw - 60px); gap: 5px !important;
+    opacity: 0.8; letter-spacing: 0.2px;
   }
+  .glass-footer::before, .glass-footer::after { width: 4px; height: 4px; }
   .mobile-nav { display: flex !important; }
 
   /* ═══════════════════════════════════════════════
@@ -531,7 +532,7 @@ input[type="number"], input[type="search"], select, textarea {
   .topbar-newbill { font-size: 10px !important; padding: 6px 8px !important; }
   .login-form-panel { padding: 20px 16px !important; }
   .sidebar-glass { width: 90vw !important; }
-  .glass-footer { font-size: 8px; padding: 4px 10px; bottom: 72px; }
+  .glass-footer { font-size: 7px; padding: 3px 9px; bottom: 74px; max-width: calc(100vw - 80px); }
   .page-content { padding: 10px 8px 72px !important; }
   /* Stat grids → single column on tiny screens */
   div[style*="grid-template-columns"][style*="minmax(200px"],
