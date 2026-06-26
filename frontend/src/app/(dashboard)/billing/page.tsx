@@ -655,16 +655,28 @@ export default function BillingPage() {
                       </button>
                     ))}
                     {lastInvoice.whatsappLink ? (
-                      <a href={lastInvoice.whatsappLink} target="_blank" rel="noopener noreferrer"
-                        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 4px", borderRadius: 7, border: "1px solid rgba(37,211,102,0.35)", background: "rgba(37,211,102,0.08)", color: "#1a7a42", fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
+                      <button
+                        onClick={() => {
+                          // Open WhatsApp to the customer's number with the text bill,
+                          // then auto-download the PDF so staff can attach it.
+                          window.open(lastInvoice.whatsappLink!, "_blank", "noopener,noreferrer");
+                          downloadInvoicePdf(lastInvoice.id);
+                        }}
+                        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 4px", borderRadius: 7, border: "1px solid rgba(37,211,102,0.35)", background: "rgba(37,211,102,0.08)", color: "#1a7a42", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                         <MessageCircle size={12} />WA
-                      </a>
+                      </button>
                     ) : (
-                      <button disabled style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 4px", borderRadius: 7, border: "1px solid rgba(180,155,110,0.20)", background: "rgba(180,155,110,0.06)", color: "#a8937a", fontSize: 11, fontWeight: 600, cursor: "not-allowed", opacity: 0.5 }}>
+                      <button disabled title="Enter the customer's mobile number above to enable WhatsApp"
+                        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 4px", borderRadius: 7, border: "1px solid rgba(180,155,110,0.20)", background: "rgba(180,155,110,0.06)", color: "#a8937a", fontSize: 11, fontWeight: 600, cursor: "not-allowed", opacity: 0.5 }}>
                         <MessageCircle size={12} />WA
                       </button>
                     )}
                   </div>
+                  {lastInvoice.whatsappLink && (
+                    <p style={{ fontSize: 10.5, color: "#6b7c45", marginBottom: 8, lineHeight: 1.4 }}>
+                      WhatsApp opens with the bill text — the PDF downloads automatically, just attach &amp; send.
+                    </p>
+                  )}
                   <button onClick={handleNewBill}
                     style={{ width: "100%", padding: "8px", borderRadius: 7, border: "1px solid rgba(107,124,69,0.30)", background: "rgba(107,124,69,0.12)", color: "#4a5e28", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                     + New Bill

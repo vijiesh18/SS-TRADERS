@@ -1,18 +1,26 @@
 /**
  * Device WhatsApp Integration (NO WhatsApp Business API)
  *
- * Generates a `wa.me` deep link that opens the device's WhatsApp app
- * with a pre-filled message to the customer. The staff member then
- * manually attaches and sends the invoice PDF (downloaded separately
- * via /api/billing/invoices/:id/pdf).
- *
- * Workflow:
- *   1. Generate Invoice PDF (download)
- *   2. Open this link -> WhatsApp opens with chat + prefilled text
- *   3. Staff manually attaches the downloaded PDF and sends
+ * Generates a `wa.me` deep link that opens the device's WhatsApp app with a
+ * pre-filled, formatted text bill addressed to the customer's number. The
+ * staff member then attaches the invoice PDF (the POS auto-downloads it on
+ * click) and sends. wa.me links cannot attach files automatically — that
+ * requires the paid WhatsApp Business API.
  */
 
 const BUSINESS_NAME = process.env.BUSINESS_NAME || "S.S Traders";
+const BUSINESS_GSTIN = process.env.BUSINESS_GSTIN || "33NQAPS4337D1ZS";
+
+export interface WhatsAppInvoice {
+  invoiceNumber: string;
+  createdAt?: Date | string | null;
+  itemCount?: number;
+  subTotal?: number;
+  gstAmount?: number;
+  grandTotal?: number;
+  paidAmount?: number;
+  pendingAmount?: number;
+}
 
 /**
  * Normalizes an Indian phone number to E.164-ish format for wa.me
@@ -25,23 +33,42 @@ function normalizePhone(phone: string): string {
   return digits;
 }
 
-export function buildWhatsAppMessage(invoiceNumber: string): string {
-  return [
-    `Thank you for shopping with ${BUSINESS_NAME}.`,
-    "",
-    `Invoice No: ${invoiceNumber}`,
-    "",
-    "Regards,",
-    BUSINESS_NAME,
-  ].join("\n");
+function inr(n?: number): string {
+  return `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+/** Builds a formatted, customer-facing text bill for WhatsApp. */
+export function buildWhatsAppMessage(inv: WhatsAppInvoice): string {
+  const lines: string[] = [`*${BUSINESS_NAME}* — Tax Invoice`, ""];
+
+  lines.push(`Invoice No: ${inv.invoiceNumber}`);
+  if (inv.createdAt) {
+    lines.push(`Date: ${new Date(inv.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`);
+  }
+  if (inv.itemCount !== undefined) lines.push(`Items: ${inv.itemCount}`);
+
+  lines.push("");
+  if (inv.subTotal !== undefined) lines.push(`Sub Total: ${inr(inv.subTotal)}`);
+  if (inv.gstAmount !== undefined) lines.push(`GST: ${inr(inv.gstAmount)}`);
+  if (inv.grandTotal !== undefined) lines.push(`*Grand Total: ${inr(inv.grandTotal)}*`);
+  if (inv.paidAmount !== undefined) lines.push(`Paid: ${inr(inv.paidAmount)}`);
+  if (inv.pendingAmount !== undefined && inv.pendingAmount > 0) {
+    lines.push(`Balance Due: ${inr(inv.pendingAmount)}`);
+  }
+
+  lines.push("", `Thank you for shopping with ${BUSINESS_NAME}!`);
+  if (BUSINESS_GSTIN) lines.push(`GSTIN: ${BUSINESS_GSTIN}`);
+
+  return lines.join("\n");
 }
 
 /**
- * Returns a wa.me link e.g.
- * https://wa.me/919876543210?text=Thank%20you%20for%20shopping...
+ * Returns a wa.me link that opens a chat with the customer's number and the
+ * formatted text bill pre-filled, e.g.
+ * https://wa.me/919876543210?text=...
  */
-export function buildWhatsAppLink(phone: string, invoiceNumber: string): string {
+export function buildWhatsAppLink(phone: string, inv: WhatsAppInvoice): string {
   const normalized = normalizePhone(phone);
-  const message = buildWhatsAppMessage(invoiceNumber);
+  const message = buildWhatsAppMessage(inv);
   return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
 }

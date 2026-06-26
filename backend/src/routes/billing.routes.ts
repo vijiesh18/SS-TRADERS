@@ -220,7 +220,16 @@ router.post("/invoices", authorize("ADMIN", "STAFF"), async (req: AuthRequest, r
   let whatsappLink: string | null = null;
   const phoneForWhatsApp = invoice.customer?.phone || walkInPhone;
   if (phoneForWhatsApp) {
-    whatsappLink = buildWhatsAppLink(phoneForWhatsApp, invoice.invoiceNumber);
+    whatsappLink = buildWhatsAppLink(phoneForWhatsApp, {
+      invoiceNumber: invoice.invoiceNumber,
+      createdAt: invoice.createdAt,
+      itemCount: items.length,
+      subTotal: Number(invoice.subTotal),
+      gstAmount: Number(invoice.gstAmount),
+      grandTotal: Number(invoice.grandTotal),
+      paidAmount: Number(invoice.paidAmount),
+      pendingAmount: Number(invoice.pendingAmount),
+    });
   }
 
   return res.status(201).json({ invoice, whatsappLink });
@@ -546,7 +555,15 @@ router.get("/invoices/:id/whatsapp-link", async (req: AuthRequest, res: Response
     return res.status(400).json({ error: "Customer phone number not available" });
   }
 
-  const link = buildWhatsAppLink(invoice.customer.phone, invoice.invoiceNumber);
+  const link = buildWhatsAppLink(invoice.customer.phone, {
+    invoiceNumber: invoice.invoiceNumber,
+    createdAt: invoice.createdAt,
+    subTotal: Number(invoice.subTotal),
+    gstAmount: Number(invoice.gstAmount),
+    grandTotal: Number(invoice.grandTotal),
+    paidAmount: Number(invoice.paidAmount),
+    pendingAmount: Number(invoice.pendingAmount),
+  });
   return res.json({ whatsappLink: link });
 });
 
