@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Archive, Zap, History, Plus, Search, Pencil, PackagePlus, X, Check } from "lucide-react";
+import { AlertTriangle, Archive, Zap, History, Plus, Search, Pencil, PackagePlus, X, Check, Tag, ArrowRight, ChevronLeft, Lightbulb } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,23 @@ const S = {
 const WARN_BADGE: [string, string] = ["rgba(196,122,58,0.14)", "#8a4a10"];
 const OK_BADGE: [string, string] = ["rgba(180,155,110,0.14)", "#6b5d4a"];
 const SUCCESS_BADGE: [string, string] = ["rgba(107,124,69,0.14)", "#4a5e28"];
+
+// Sensible defaults + hints per product category (matched by name keywords),
+// so the form pre-fills the right unit / HSN once a category is chosen.
+function categoryDefaults(name: string): { unit?: string; hsnCode?: string; hint?: string } {
+  const n = name.toLowerCase();
+  if (/paint|emulsion|enamel|distemper|primer.*paint/.test(n))
+    return { unit: "LTR", hsnCode: "3209", hint: "Paints are usually sold per litre. Add the shade/pack to the name (e.g. “Royale 20L – Ivory”)." };
+  if (/putty|primer|cement|powder/.test(n))
+    return { unit: "KG", hsnCode: "3214", hint: "Sold by weight — unit set to KG." };
+  if (/thinner|solvent|turpentine/.test(n))
+    return { unit: "LTR", hsnCode: "3814", hint: "Liquids — unit set to litres." };
+  if (/brush|roller|tray|tool|tape|sandpaper/.test(n))
+    return { unit: "PCS", hsnCode: "9603", hint: "Counted items — unit set to pieces." };
+  if (/hardware|fitting|fastener|nail|screw/.test(n))
+    return { unit: "PCS", hint: "Counted items — unit set to pieces." };
+  return {};
+}
 
 // ─── Quick Add-Stock Dialog (unchanged logic) ───
 function QuickStockDialog({ product, onClose }: { product: ProductItem; onClose: () => void }) {
@@ -104,6 +121,29 @@ function ProductDialog({ product, onClose }: { product: ProductItem | null; onCl
   const set = (k: string, v: string | number) => setForm((f) => ({ ...f, [k]: v }));
   const [err, setErr] = useState<string | null>(null);
 
+  // Two-step flow for new products: pick a category first, then fill details.
+  // Editing jumps straight to details (category already known).
+  const [step, setStep] = useState<"category" | "details">(isNew ? "category" : "details");
+  const selectedCat = (cats || []).find((c) => c.id === form.categoryId);
+  const catHint = selectedCat ? categoryDefaults(selectedCat.name).hint : undefined;
+
+  function chooseCategory(catId: string | null) {
+    if (catId) {
+      const cat = (cats || []).find((c) => c.id === catId);
+      const d = cat ? categoryDefaults(cat.name) : {};
+      setForm((f) => ({
+        ...f,
+        categoryId: catId,
+        // Only pre-fill unit/HSN if the user hasn't set them yet
+        unit: d.unit && f.unit === "PCS" ? d.unit : f.unit,
+        hsnCode: d.hsnCode && !f.hsnCode ? d.hsnCode : f.hsnCode,
+      }));
+    } else {
+      setForm((f) => ({ ...f, categoryId: "" }));
+    }
+    setStep("details");
+  }
+
   async function handleSubmit() {
     setErr(null);
     if (!form.name.trim()) { setErr("Product name is required"); return; }
@@ -134,79 +174,138 @@ function ProductDialog({ product, onClose }: { product: ProductItem | null; onCl
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardContent className="space-y-4 p-6">
           <div className="flex items-center justify-between">
-            <p className="text-lg font-semibold">{isNew ? "Add New Product" : "Edit Product"}</p>
+            <div className="flex items-center gap-2">
+              {isNew && step === "details" && (cats || []).length > 0 && (
+                <button onClick={() => setStep("category")} title="Back to category"
+                  style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "#6b5d4a", padding: 2 }}>
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+              )}
+              <p className="text-lg font-semibold">{isNew ? "Add New Product" : "Edit Product"}</p>
+            </div>
             <button onClick={onClose}><X className="h-4 w-4 text-muted-foreground" /></button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 space-y-1.5">
-              <Label className="text-xs">Product Name *</Label>
-              <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Asian Paints Royale 20L" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Product Code *</Label>
-              <Input value={form.productCode} onChange={(e) => set("productCode", e.target.value)} placeholder="e.g. AP-001" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Barcode</Label>
-              <Input value={form.barcode} onChange={(e) => set("barcode", e.target.value)} placeholder="Scan or type barcode" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Category</Label>
-              <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
-                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                <SelectContent>
-                  {(cats || []).map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Unit</Label>
-              <Select value={form.unit} onValueChange={(v) => set("unit", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["PCS", "LTR", "KG", "PACK", "BOX", "NOS", "CAN"].map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Pack Size / Variant</Label>
-              <Input value={form.variant} onChange={(e) => set("variant", e.target.value)} placeholder="e.g. 20L, 1 KG" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">HSN Code</Label>
-              <Input value={form.hsnCode} onChange={(e) => set("hsnCode", e.target.value)} placeholder="e.g. 3209" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">GST %</Label>
-              <Input type="number" value={form.gstPercentage} onChange={(e) => set("gstPercentage", Number(e.target.value))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Purchase Price (₹)</Label>
-              <Input type="number" value={form.purchasePrice} onChange={(e) => set("purchasePrice", Number(e.target.value))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Selling Price (₹)</Label>
-              <Input type="number" value={form.sellingPrice} onChange={(e) => set("sellingPrice", Number(e.target.value))} />
-            </div>
-            {isNew && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Opening Stock</Label>
-                <Input type="number" value={form.stockQuantity} onChange={(e) => set("stockQuantity", Number(e.target.value))} />
+
+          {isNew && step === "category" ? (
+            /* ── STEP 1 — pick a category ── */
+            <div className="space-y-4">
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.6px", textTransform: "uppercase", color: "#a8937a" }}>Step 1 of 2</p>
+                <p className="text-base font-semibold" style={{ marginTop: 4, color: "#2c2418" }}>What category is this product?</p>
+                <p className="text-xs" style={{ color: "#a8937a", marginTop: 3 }}>We&apos;ll pre-fill the right unit and HSN code for you.</p>
               </div>
-            )}
-            <div className="space-y-1.5">
-              <Label className="text-xs">Minimum Stock Alert</Label>
-              <Input type="number" value={form.minimumStock} onChange={(e) => set("minimumStock", Number(e.target.value))} />
+              {(cats || []).length === 0 ? (
+                <p className="text-sm" style={{ color: "#a8937a" }}>No categories set up yet — you can continue without one.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {(cats || []).map((c) => (
+                    <button key={c.id} onClick={() => chooseCategory(c.id)}
+                      style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(180,155,110,0.28)", background: "rgba(250,247,242,0.9)", color: "#2c2418", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(107,124,69,0.08)"; e.currentTarget.style.borderColor = "#6b7c45"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(250,247,242,0.9)"; e.currentTarget.style.borderColor = "rgba(180,155,110,0.28)"; }}>
+                      <Tag size={14} style={{ color: "#6b7c45", flexShrink: 0 }} /> {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-1">
+                <Button variant="outline" onClick={onClose}>Cancel</Button>
+                <button onClick={() => chooseCategory(null)}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", color: "#6b7c45", fontSize: 13, fontWeight: 600 }}>
+                  Skip — no category <ArrowRight size={14} />
+                </button>
+              </div>
             </div>
-          </div>
-          {err && <p className="text-sm text-red-500">{err}</p>}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={isSaving}>
-              <Check className="h-4 w-4 mr-1" />
-              {isSaving ? "Saving..." : isNew ? "Add Product" : "Save Changes"}
-            </Button>
-          </div>
+          ) : (
+            /* ── STEP 2 — product details ── */
+            <>
+              {isNew && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(107,124,69,0.08)", border: "1px solid rgba(107,124,69,0.20)", borderRadius: 10, padding: "8px 12px" }}>
+                  <span style={{ fontSize: 13, color: "#4a5e28", display: "flex", alignItems: "center", gap: 6 }}>
+                    <Tag size={13} /> Category: <b>{selectedCat?.name || "None"}</b>
+                  </span>
+                  <button onClick={() => setStep("category")} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7c45", fontSize: 12, fontWeight: 700 }}>Change</button>
+                </div>
+              )}
+              {catHint && (
+                <p style={{ fontSize: 12, color: "#8a5520", background: "rgba(196,122,58,0.08)", border: "1px solid rgba(196,122,58,0.22)", borderRadius: 8, padding: "8px 12px", display: "flex", alignItems: "flex-start", gap: 7, lineHeight: 1.5 }}>
+                  <Lightbulb size={14} style={{ flexShrink: 0, marginTop: 1, color: "#c47a3a" }} /> {catHint}
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs">Product Name *</Label>
+                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Asian Paints Royale 20L" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Product Code *</Label>
+                  <Input value={form.productCode} onChange={(e) => set("productCode", e.target.value)} placeholder="e.g. AP-001" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Barcode</Label>
+                  <Input value={form.barcode} onChange={(e) => set("barcode", e.target.value)} placeholder="Scan or type barcode" />
+                </div>
+                {!isNew && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Category</Label>
+                    <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
+                      <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                      <SelectContent>
+                        {(cats || []).map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Unit</Label>
+                  <Select value={form.unit} onValueChange={(v) => set("unit", v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["PCS", "LTR", "KG", "PACK", "BOX", "NOS", "CAN"].map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Pack Size / Variant</Label>
+                  <Input value={form.variant} onChange={(e) => set("variant", e.target.value)} placeholder="e.g. 20L, 1 KG" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">HSN Code</Label>
+                  <Input value={form.hsnCode} onChange={(e) => set("hsnCode", e.target.value)} placeholder="e.g. 3209" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">GST %</Label>
+                  <Input type="number" value={form.gstPercentage} onChange={(e) => set("gstPercentage", Number(e.target.value))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Purchase Price (₹)</Label>
+                  <Input type="number" value={form.purchasePrice} onChange={(e) => set("purchasePrice", Number(e.target.value))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Selling Price (₹)</Label>
+                  <Input type="number" value={form.sellingPrice} onChange={(e) => set("sellingPrice", Number(e.target.value))} />
+                </div>
+                {isNew && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Opening Stock</Label>
+                    <Input type="number" value={form.stockQuantity} onChange={(e) => set("stockQuantity", Number(e.target.value))} />
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Minimum Stock Alert</Label>
+                  <Input type="number" value={form.minimumStock} onChange={(e) => set("minimumStock", Number(e.target.value))} />
+                </div>
+              </div>
+              {err && <p className="text-sm text-red-500">{err}</p>}
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={onClose}>Cancel</Button>
+                <Button onClick={handleSubmit} disabled={isSaving}>
+                  <Check className="h-4 w-4 mr-1" />
+                  {isSaving ? "Saving..." : isNew ? "Add Product" : "Save Changes"}
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
