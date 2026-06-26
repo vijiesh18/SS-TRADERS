@@ -69,6 +69,11 @@ export default function UsersPage() {
 
   const currentUser = useAuthStore((s) => s.user);
   const isAdmin = currentUser?.role === "ADMIN";
+  const isDemo = !!currentUser?.isDemo;
+
+  // In the public demo, mask real contact details
+  const showEmail = (email: string) => (isDemo ? "••••••@••••••" : email);
+  const showPhone = (phone?: string | null) => (isDemo ? "••••••••" : phone || "-");
 
   const { data: users, isLoading } = useUsers();
   const updateUser = useUpdateUser();
@@ -151,8 +156,8 @@ export default function UsersPage() {
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
                       <td style={{ ...S.td, fontWeight: 600 }}>{u.name}{u.id === currentUser?.id && <span style={{ ...S.badge("rgba(180,155,110,0.14)", "#6b5d4a"), marginLeft: 8 }}>You</span>}</td>
-                      <td style={S.td}>{u.email}</td>
-                      <td style={{ ...S.td, color: "#a8937a" }}>{u.phone || "-"}</td>
+                      <td style={S.td}>{showEmail(u.email)}</td>
+                      <td style={{ ...S.td, color: "#a8937a" }}>{showPhone(u.phone)}</td>
                       <td style={S.td}><span style={S.badge(rbg, rc)}>{u.role}</span></td>
                       <td style={S.td}><StatusBadge active={u.isActive} /></td>
                       <td style={{ ...S.td, color: "#a8937a" }}>{formatDate(u.createdAt)}</td>
@@ -196,13 +201,13 @@ export default function UsersPage() {
                       {u.name}
                       {isSelf && <span style={S.badge("rgba(180,155,110,0.14)", "#6b5d4a")}>You</span>}
                     </p>
-                    <p style={{ fontSize: 12, color: "#a8937a", marginTop: 2, wordBreak: "break-all" }}>{u.email}</p>
+                    <p style={{ fontSize: 12, color: "#a8937a", marginTop: 2, wordBreak: "break-all" }}>{showEmail(u.email)}</p>
                   </div>
                   <span style={S.badge(rbg, rc)}>{u.role}</span>
                 </div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, fontSize: 12, color: "#6b5d4a" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Phone size={12} color="#a8937a" /> {u.phone || "—"}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Phone size={12} color="#a8937a" /> {showPhone(u.phone)}</span>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Calendar size={12} color="#a8937a" /> {formatDate(u.createdAt)}</span>
                   <StatusBadge active={u.isActive} />
                 </div>

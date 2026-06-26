@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/auth-store";
+import { useDemoStore } from "@/store/demo-store";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api",
@@ -19,7 +20,13 @@ let isRefreshing = false;
 let refreshQueue: ((token: string) => void)[] = [];
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Demo mode: backend flags blocked writes — show the friendly dialog
+    if (response.headers?.["x-demo-mode"] === "blocked") {
+      try { useDemoStore.getState().showBlocked(); } catch { /* noop */ }
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 

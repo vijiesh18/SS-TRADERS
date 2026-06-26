@@ -100,14 +100,21 @@ export async function demoGuard(req: AuthRequest, res: Response, next: NextFunct
     return res.json({});
   }
 
-  // All write operations — return fake success
+  // All write operations — block them, flag via header so the UI can explain
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    res.setHeader("X-Demo-Mode", "blocked");
+
     if (method === "POST" && path === "/api/billing/invoices") {
+      // Match the real response shape ({ invoice, whatsappLink }) so the
+      // billing page doesn't crash reading result.invoice.id in demo mode.
       return res.json({
-        id: "demo-" + Date.now(),
-        invoiceNumber: "DEMO-" + String(Math.floor(Math.random() * 100000)).padStart(6, "0"),
-        status: "PAID",
-        grandTotal: 0,
+        invoice: {
+          id: "demo-" + Date.now(),
+          invoiceNumber: "DEMO-" + String(Math.floor(Math.random() * 100000)).padStart(6, "0"),
+          status: "PAID",
+          grandTotal: 0,
+        },
+        whatsappLink: null,
         message: "Demo mode — invoice not saved",
       });
     }

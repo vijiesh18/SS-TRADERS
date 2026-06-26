@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { AppFooter } from "@/components/layout/app-footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { DemoLockDialog } from "@/components/demo-lock-dialog";
 
 export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function DashboardGroupLayout({ children }: { children: React.Rea
         {/* Fixed floating footer — outside scroll container */}
         <AppFooter />
         <MobileNav />
+        <DemoLockDialog />
       </div>
     </AuthGuard>
   );
