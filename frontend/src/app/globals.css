@@ -502,6 +502,9 @@ input[type="number"], input[type="search"], select, textarea {
     opacity: 0.8; letter-spacing: 0.2px;
   }
   .glass-footer::before, .glass-footer::after { width: 4px; height: 4px; }
+  /* Hide the floating footer while the sidebar drawer is open so it
+     doesn't overlap the user/Logout section at the bottom */
+  .sidebar-glass.sidebar-open ~ .glass-footer { display: none !important; }
   .mobile-nav { display: flex !important; }
 
   /* ═══════════════════════════════════════════════
