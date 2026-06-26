@@ -7,6 +7,7 @@ import { recordAudit, AUDIT_ACTIONS } from "@/lib/audit";
 import { generateInvoiceNumber } from "@/lib/numbering";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { generateInvoicePDF, generateThermalReceipt } from "@/lib/pdf";
+import { computeBillTotals, computeGrandTotal, computePaymentStatus } from "@/lib/billing-calc";
 
 const router = Router();
 
@@ -41,25 +42,26 @@ async function computeInvoiceTotals(items: z.infer<typeof billItemSchema>[]) {
 
   const productMap = new Map(products.map((p) => [p.id, p]));
 
-  let subTotal = 0;
-  let totalGst = 0;
-  let totalDiscount = 0;
-
-  const computedItems = items.map((item) => {
+  // Resolve the product + GST rate for each line up front (DB-bound work),
+  // then hand the pure numbers to the unit-tested billing-calc helpers.
+  const resolved = items.map((item) => {
     const product = productMap.get(item.productId);
     if (!product) throw new Error(`Product ${item.productId} not found`);
-
-    const gross = item.quantity * item.rate;
-    const discountAmount = (gross * item.discountPercent) / 100;
-    const taxable = gross - discountAmount;
     const gstPct = item.gstPercentage !== undefined ? item.gstPercentage : Number(product.gstPercentage);
-    const gstAmount = (taxable * gstPct) / 100;
-    const total = taxable + gstAmount;
+    return { item, product, gstPct };
+  });
 
-    subTotal += taxable;
-    totalGst += gstAmount;
-    totalDiscount += discountAmount;
+  const totals = computeBillTotals(
+    resolved.map(({ item, gstPct }) => ({
+      quantity: item.quantity,
+      rate: item.rate,
+      discountPercent: item.discountPercent,
+      gstPercentage: gstPct,
+    }))
+  );
 
+  const computedItems = resolved.map(({ item, product, gstPct }, i) => {
+    const line = totals.computedLines[i];
     return {
       product,
       quantity: item.quantity,
@@ -67,25 +69,20 @@ async function computeInvoiceTotals(items: z.infer<typeof billItemSchema>[]) {
       discountPercent: item.discountPercent,
       gstPercentage: gstPct,
       shadeCode: item.shadeCode !== undefined ? item.shadeCode : product.shadeCode,
-      taxableAmount: taxable,
-      gstAmount,
-      totalAmount: total,
+      taxableAmount: line.taxableAmount,
+      gstAmount: line.gstAmount,
+      totalAmount: line.totalAmount,
     };
   });
 
-  // Intra-state (Tamil Nadu, S.S Traders GSTIN starts with 33) → split GST into CGST + SGST equally
-  const cgst = totalGst / 2;
-  const sgst = totalGst / 2;
-  const igst = 0;
-
   return {
     computedItems,
-    subTotal,
-    totalDiscount,
-    gstAmount: totalGst,
-    cgstAmount: cgst,
-    sgstAmount: sgst,
-    igstAmount: igst,
+    subTotal: totals.subTotal,
+    totalDiscount: totals.totalDiscount,
+    gstAmount: totals.gstAmount,
+    cgstAmount: totals.cgstAmount,
+    sgstAmount: totals.sgstAmount,
+    igstAmount: totals.igstAmount,
   };
 }
 
@@ -132,14 +129,10 @@ router.post("/invoices", authorize("ADMIN", "STAFF"), async (req: AuthRequest, r
     }
   }
 
-  const grandTotal = Math.round((totals.subTotal + totals.gstAmount + roundOff) * 100) / 100;
+  const grandTotal = computeGrandTotal(totals.subTotal, totals.gstAmount, roundOff);
   const invoiceNumber = await generateInvoiceNumber();
 
-  const pendingAmount =
-    paymentMethod === "CREDIT" ? grandTotal - paidAmount : Math.max(0, grandTotal - paidAmount);
-
-  const status =
-    pendingAmount <= 0 ? "PAID" : paidAmount > 0 ? "PARTIAL" : "UNPAID";
+  const { pendingAmount, status } = computePaymentStatus(grandTotal, paidAmount, paymentMethod);
 
   const invoice = await prisma.$transaction(async (tx) => {
     const created = await tx.invoice.create({
