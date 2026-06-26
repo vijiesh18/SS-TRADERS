@@ -19,6 +19,13 @@ import {
   Search, ArrowRight, UserPlus, IndianRupee, Clock,
 } from "lucide-react";
 
+// Table header cell — matches the Estimates/Billing-History table style
+const TH: React.CSSProperties = {
+  padding: "12px 16px", fontSize: 10, fontWeight: 700, textTransform: "uppercase",
+  letterSpacing: "0.8px", color: "rgba(220,205,180,0.85)", whiteSpace: "nowrap",
+  textAlign: "left", background: "#2c2820",
+};
+
 // ─── Invoice Quick View ────────────────────────────────────────
 function InvoicePreviewModal({ invoiceId, onClose }: { invoiceId: string; onClose: () => void }) {
   const { data: invoice, isLoading } = useInvoice(invoiceId);
@@ -500,20 +507,24 @@ export default function CreditPage() {
 
       {/* Named Customer Credit Records */}
       <div style={{ background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" }}>
-        <div style={{ background: "#2c2820", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Credit Records — Named Customers</p>
-          <p style={{ fontSize: 11, color: "rgba(180,155,110,0.75)" }}>Click any row to see payment history ↓</p>
+        <div style={{ background: "#2c2820", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <CreditCard size={14} color="rgba(180,155,110,0.8)" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Credit Records — Named Customers</span>
+          </span>
+          <span style={{ fontSize: 11, color: "rgba(180,155,110,0.75)" }}>Click any row to see payment history ↓</span>
         </div>
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
+        <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
             <tr>
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3">Invoice</th>
-              <th className="px-4 py-3 text-right">Total Bill</th>
-              <th className="px-4 py-3 text-right">Paid</th>
-              <th className="px-4 py-3 text-right">Balance Due</th>
-              <th className="px-4 py-3">Payments</th>
-              <th className="px-4 py-3"></th>
+              <th style={TH}>Customer</th>
+              <th style={TH}>Invoice</th>
+              <th style={{ ...TH, textAlign: "right" }}>Total Bill</th>
+              <th style={{ ...TH, textAlign: "right" }}>Paid</th>
+              <th style={{ ...TH, textAlign: "right" }}>Balance Due</th>
+              <th style={TH}>Payments</th>
+              <th style={TH}></th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -535,27 +546,30 @@ export default function CreditPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Walk-in Pending Invoices */}
       {pendingInvoices.length > 0 && (
         <div style={{ background: "rgba(250,247,242,0.95)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 14, boxShadow: "0 4px 20px rgba(100,80,40,0.07), inset 0 1px 0 rgba(255,255,255,0.8)", overflow: "hidden" }}>
-          <div style={{ background: "#2c2820", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ background: "#2c2820", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+            <Receipt size={14} color="rgba(196,122,58,0.85)" />
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,230,0.92)" }}>Partial / Unpaid Bills — Walk-in</p>
               <p style={{ fontSize: 11, color: "rgba(196,122,58,0.85)" }}>Link to a customer to enable installment payment tracking.</p>
             </div>
           </div>
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase" style={{ background: "#2c2820", color: "rgba(220,205,180,0.85)" }}>
+          <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Invoice</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3 text-right">Paid</th>
-                <th className="px-4 py-3 text-right">Balance Due</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3"></th>
+                <th style={TH}>Invoice</th>
+                <th style={TH}>Date</th>
+                <th style={{ ...TH, textAlign: "right" }}>Total</th>
+                <th style={{ ...TH, textAlign: "right" }}>Paid</th>
+                <th style={{ ...TH, textAlign: "right" }}>Balance Due</th>
+                <th style={TH}>Status</th>
+                <th style={TH}></th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -577,6 +591,7 @@ export default function CreditPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
