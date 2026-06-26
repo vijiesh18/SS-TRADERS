@@ -475,17 +475,26 @@ export default function CreditPage() {
       </div>
 
       {/* Search + Filter */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search by customer name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+        <div style={{ position: "relative", flex: "1 1 240px", minWidth: 200 }}>
+          <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#a8937a", pointerEvents: "none" }} />
+          <input
+            placeholder="Search by customer name or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: "100%", background: "rgba(255,252,248,0.9)", border: "1px solid rgba(180,155,110,0.30)", borderRadius: 8, padding: "9px 12px 9px 36px", fontSize: 13, color: "#2c2418", outline: "none", boxSizing: "border-box" }}
+          />
         </div>
-        <div className="flex gap-2">
-          {(["all", "due-today", "overdue"] as const).map((f) => (
-            <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)}>
-              {f === "all" ? "All Pending" : f === "due-today" ? "Due Today" : "Overdue"}
-            </Button>
-          ))}
+        <div style={{ display: "inline-flex", gap: 3, padding: 3, background: "rgba(245,240,232,0.9)", border: "1px solid rgba(180,155,110,0.22)", borderRadius: 10 }}>
+          {(["all", "due-today", "overdue"] as const).map((f) => {
+            const active = filter === f;
+            return (
+              <button key={f} onClick={() => setFilter(f)}
+                style={{ padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", background: active ? "linear-gradient(135deg,#6b7c45,#8fa05a)" : "transparent", color: active ? "#fff" : "#6b5d4a", boxShadow: active ? "0 2px 8px rgba(107,124,69,0.3)" : "none" }}>
+                {f === "all" ? "All Pending" : f === "due-today" ? "Due Today" : "Overdue"}
+              </button>
+            );
+          })}
         </div>
       </div>
 
