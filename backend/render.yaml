@@ -1,0 +1,35 @@
+# Render Blueprint — free backend for S.S Traders Management System.
+# In Render: New → Blueprint → pick this repo. Set the secret env vars
+# (marked sync:false) in the dashboard after the service is created.
+services:
+  - type: web
+    name: ss-traders-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    preDeployCommand: npx prisma migrate deploy
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL          # Neon pooled connection string
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: CORS_ORIGIN           # e.g. https://ss-traders.vercel.app
+        sync: false
+      - key: BUSINESS_NAME
+        value: S.S Traders
+      - key: BUSINESS_GSTIN
+        value: 33NQAPS4337D1ZS
+      - key: BUSINESS_PHONE
+        value: "6383019535"
+      # Optional — password-reset email (leave unset to skip)
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false

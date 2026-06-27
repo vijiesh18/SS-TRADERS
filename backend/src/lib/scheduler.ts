@@ -113,3 +113,26 @@ export function registerBackupSchedules() {
 
   console.log("[backup] Daily (02:00) and weekly (Sun 03:00) backup schedules registered");
 }
+
+/**
+ * Keeps a free-tier instance awake by self-pinging /health every 14 minutes.
+ * Free hosts (Render, etc.) sleep a service after ~15 min with no inbound
+ * traffic; this self-request resets that timer so there are no cold-start
+ * delays during shop hours — no external pinger account needed.
+ *
+ * Uses KEEP_ALIVE_URL if set, else Render's auto-provided RENDER_EXTERNAL_URL.
+ * Does nothing locally (neither var set), so dev is unaffected.
+ */
+export function registerKeepAlive() {
+  const base = process.env.KEEP_ALIVE_URL || process.env.RENDER_EXTERNAL_URL;
+  if (!base) return;
+  const url = `${base.replace(/\/+$/, "")}/health`;
+  cron.schedule("*/14 * * * *", async () => {
+    try {
+      await fetch(url);
+    } catch {
+      /* transient network error — ignore */
+    }
+  });
+  console.log(`[keep-alive] self-ping every 14 min -> ${url}`);
+}
