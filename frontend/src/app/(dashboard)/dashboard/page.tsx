@@ -209,7 +209,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── Hero panel ──────────────────────────────────── */}
-      <div className="anim-fade-up" style={{
+      <div className="anim-fade-up dash-hero" style={{
         background: "linear-gradient(135deg, rgba(250,247,242,0.95) 0%, rgba(245,238,225,0.90) 100%)",
         backdropFilter: "blur(20px)",
         border: "1px solid rgba(180,155,110,0.30)",
@@ -260,7 +260,7 @@ export default function DashboardPage() {
           </div>
 
           {/* This month — right side hero */}
-          <div style={{ textAlign:"right" }}>
+          <div className="dash-hero-right" style={{ textAlign:"right" }}>
             <div style={{ fontSize:11, color:"#a8937a", textTransform:"uppercase", letterSpacing:"1px", fontWeight:600, marginBottom:8 }}>This Month</div>
             {summaryLoading
               ? <div className="shimmer" style={{ width:160, height:40, borderRadius:8, marginLeft:"auto" }} />
