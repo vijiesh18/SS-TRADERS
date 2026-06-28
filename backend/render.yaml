@@ -8,10 +8,14 @@ services:
     plan: free
     rootDir: backend
     # --include=dev: NODE_ENV=production otherwise skips devDeps (typescript,
-    # @types/*, prisma) which the build needs.
+    #   @types/*, prisma) which the build needs.
+    # --no-workspaces: this repo is an npm workspace; without it deps hoist to
+    #   the repo-root node_modules, but rootDir=backend means the runtime only
+    #   ships backend/, so deps go missing at start. This keeps them in
+    #   backend/node_modules.
     # Free tier doesn't support preDeployCommand, so migrate deploy runs at
     # the end of the build (env vars are available at build time on Render).
-    buildCommand: npm install --include=dev && npm run build && npx prisma migrate deploy
+    buildCommand: npm install --include=dev --no-workspaces && npm run build && npx prisma migrate deploy
     startCommand: npm start
     healthCheckPath: /health
     envVars:
