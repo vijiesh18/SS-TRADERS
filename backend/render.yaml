@@ -7,9 +7,11 @@ services:
     runtime: node
     plan: free
     rootDir: backend
+    # --include=dev: NODE_ENV=production otherwise skips devDeps (typescript,
+    # @types/*, prisma) which the build needs.
     # Free tier doesn't support preDeployCommand, so migrate deploy runs at
     # the end of the build (env vars are available at build time on Render).
-    buildCommand: npm install && npm run build && npx prisma migrate deploy
+    buildCommand: npm install --include=dev && npm run build && npx prisma migrate deploy
     startCommand: npm start
     healthCheckPath: /health
     envVars:
