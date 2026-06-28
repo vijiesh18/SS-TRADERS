@@ -605,11 +605,11 @@ export default function CreditPage() {
             <tbody className="divide-y">
               {pendingInvoices.map((inv) => (
                 <tr key={inv.id} className="hover:bg-amber-50/50 cursor-pointer" onClick={() => setPreviewId(inv.id)}>
-                  <td className="px-4 py-3 font-medium text-indigo-600">{inv.invoiceNumber}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(inv.createdAt)}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(Number(inv.grandTotal))}</td>
-                  <td className="px-4 py-3 text-right text-emerald-600 font-medium">{formatCurrency(Number(inv.paidAmount))}</td>
-                  <td className="px-4 py-3 text-right text-red-600 font-bold">{formatCurrency(Number(inv.pendingAmount))}</td>
+                  <td className="px-4 py-3 text-sm text-indigo-600 font-medium">{inv.invoiceNumber}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(inv.createdAt)}</td>
+                  <td className="px-4 py-3 text-right text-sm">{formatCurrency(Number(inv.grandTotal))}</td>
+                  <td className="px-4 py-3 text-right text-emerald-600 font-semibold">{formatCurrency(Number(inv.paidAmount))}</td>
+                  <td className="px-4 py-3 text-right text-red-600 font-bold text-base">{formatCurrency(Number(inv.pendingAmount))}</td>
                   <td className="px-4 py-3"><Badge variant={inv.status === "UNPAID" ? "destructive" : "warning"}>{inv.status}</Badge></td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <Button size="sm" variant="outline" className="h-7 text-xs gap-1"
