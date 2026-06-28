@@ -7,14 +7,15 @@ services:
     runtime: node
     plan: free
     rootDir: backend
-    buildCommand: npm install && npm run build
-    preDeployCommand: npx prisma migrate deploy
+    # Free tier doesn't support preDeployCommand, so migrate deploy runs at
+    # the end of the build (env vars are available at build time on Render).
+    buildCommand: npm install && npm run build && npx prisma migrate deploy
     startCommand: npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL          # Neon pooled connection string
+      - key: DATABASE_URL          # Neon DIRECT (unpooled) string — pooled breaks prisma migrate
         sync: false
       - key: JWT_SECRET
         sync: false
